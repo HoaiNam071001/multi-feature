@@ -1,0 +1,7 @@
+export enum RouterPath {
+  HOME = "/",
+  ABOUT = "/about",
+  CONTACT = "/contact",
+  MINI_GAME = "/mini-game",
+  PROVINCE_LOOKUP = "/province-lookup",
+}
