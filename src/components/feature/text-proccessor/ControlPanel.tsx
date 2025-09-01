@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Step, StepType, stepTypeNames } from "./TextProccessor";
+import { Step, StepInput, StepType, stepTypeNames } from "./TextProccessor";
 import I18n from "@/components/utils/I18n";
 import { Copy } from "lucide-react";
 import { useToast } from "@/hooks/useToast"; // Import hook mới tạo
@@ -16,7 +16,7 @@ interface ControlPanelProps {
   inputText: string;
   outputText: string;
   setInputText: (text: string) => void;
-  addStep: (step: Step) => void;
+  addStep: (step: StepInput) => void;
   handleClear: () => void;
 }
 
@@ -159,7 +159,10 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
         />
         <Button
           onClick={() =>
-            addStep({ type: StepType.RemoveChars, chars: charsToRemove })
+            addStep({
+              type: StepType.RemoveChars,
+              chars: charsToRemove,
+            } as StepInput)
           }
         >
           <I18n value={stepTypeNames[StepType.RemoveChars]} />
@@ -179,7 +182,7 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
             addStep({
               type: StepType.Truncate,
               length: parseInt(truncateLength, 10),
-            })
+            } as StepInput)
           }
         >
           <I18n value={stepTypeNames[StepType.Truncate]} />
@@ -205,14 +208,12 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
               type: StepType.FindReplace,
               find: findText,
               replace: replaceText,
-            })
+            } as StepInput)
           }
         >
           <I18n value={stepTypeNames[StepType.FindReplace]} />
         </Button>
       </div>
-
-     
     </div>
   );
 };

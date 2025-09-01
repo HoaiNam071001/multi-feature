@@ -1,4 +1,4 @@
-// app/page.tsx (hoặc file gốc của bạn)
+// app/page.tsx
 
 "use client";
 
@@ -6,6 +6,8 @@ import React, { useState, useMemo } from "react";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import StepList from "@/components/feature/text-proccessor/StepList";
 import ControlPanel from "@/components/feature/text-proccessor/ControlPanel";
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 // Định nghĩa lại StepType và Step
 export enum StepType {
@@ -21,26 +23,27 @@ export enum StepType {
   RemoveBlankLines = "removeBlankLines",
   RemoveDuplicateLines = "removeDuplicateLines",
   SentenceCase = "sentenceCase",
-  SwapCase = "swapCase", // Thêm Swap Case
-  RemoveExtraSpaces = "removeExtraSpaces", // Thêm Remove Extra Spaces
+  SwapCase = "swapCase",
+  RemoveExtraSpaces = "removeExtraSpaces",
   RemoveDiacritics = "removeDiacritics",
 }
 
-export type Step =
-  | { type: StepType.Uppercase }
-  | { type: StepType.Lowercase }
-  | { type: StepType.Capitalize }
-  | { type: StepType.RemoveChars; chars: string }
-  | { type: StepType.Reverse }
-  | { type: StepType.Trim }
-  | { type: StepType.Truncate; length: number }
-  | { type: StepType.FindReplace; find: string; replace: string }
-  | { type: StepType.RemoveBlankLines }
-  | { type: StepType.RemoveDuplicateLines }
-  | { type: StepType.SentenceCase }
-  | { type: StepType.SwapCase } // Kiểu mới
-  | { type: StepType.RemoveExtraSpaces } // Kiểu mới
-  | { type: StepType.RemoveDiacritics }; // Kiểu mới
+// Cập nhật kiểu Step để có thêm thuộc tính 'id'
+export type Step = 
+  | { id: string; type: StepType.Uppercase }
+  | { id: string; type: StepType.Lowercase }
+  | { id: string; type: StepType.Capitalize }
+  | { id: string; type: StepType.RemoveChars; chars: string }
+  | { id: string; type: StepType.Reverse }
+  | { id: string; type: StepType.Trim }
+  | { id: string; type: StepType.Truncate; length: number }
+  | { id: string; type: StepType.FindReplace; find: string; replace: string }
+  | { id: string; type: StepType.RemoveBlankLines }
+  | { id: string; type: StepType.RemoveDuplicateLines }
+  | { id: string; type: StepType.SentenceCase }
+  | { id: string; type: StepType.SwapCase }
+  | { id: string; type: StepType.RemoveExtraSpaces }
+  | { id: string; type: StepType.RemoveDiacritics };
 
 export const stepTypeNames: { [key in StepType]: string } = {
   [StepType.Uppercase]: "In hoa",
@@ -50,25 +53,36 @@ export const stepTypeNames: { [key in StepType]: string } = {
   [StepType.Reverse]: "Đảo ngược",
   [StepType.Trim]: "Xóa khoảng trắng",
   [StepType.Truncate]: "Cắt chuỗi",
-  [StepType.FindReplace]: "Tìm & Thay thế",
+  [StepType.FindReplace]: "Thay thế",
   [StepType.Count]: "Đếm",
   [StepType.RemoveBlankLines]: "Xóa dòng trống",
   [StepType.RemoveDuplicateLines]: "Xóa dòng trùng lặp",
   [StepType.SentenceCase]: "Viết hoa câu",
-  [StepType.SwapCase]: "Đảo ngược chữ hoa/thường", // Tên mới
-  [StepType.RemoveExtraSpaces]: "Xóa khoảng trắng thừa", // Tên mới
+  [StepType.SwapCase]: "Đảo ngược chữ hoa/thường",
+  [StepType.RemoveExtraSpaces]: "Xóa khoảng trắng thừa",
   [StepType.RemoveDiacritics]: "Loại bỏ dấu",
 };
+
+// Định nghĩa kiểu cho các bước đầu vào không có ID
+export type StepInput = Omit<Step, 'id'>;
 
 const TextProcessor: React.FC = () => {
   const [inputText, setInputText] = useState<string>("");
   const [steps, setSteps] = useState<Step[]>([]);
 
-  const addStep = (step: Step) => setSteps((prev) => [...prev, step]);
+  // Sửa kiểu dữ liệu của step từ `any` thành `StepInput`
+  const addStep = (step: StepInput) => {
+    const newStep: Step = { ...step, id: `step-${Date.now()}-${Math.random()}` } as Step;
+    setSteps((prev) => [...prev, newStep]);
+  };
 
   const removeStep = (index: number) =>
     setSteps((prev) => prev.filter((_, i) => i !== index));
 
+  const reorderSteps = (newSteps: Step[]) => {
+    setSteps(newSteps);
+  };
+  
   const stepOutputs = useMemo(() => {
     const outputs: string[] = [];
     let currentText = inputText;
@@ -180,6 +194,7 @@ const TextProcessor: React.FC = () => {
           steps={steps}
           stepOutputs={stepOutputs}
           removeStep={removeStep}
+          reorderSteps={reorderSteps}
         />
       </div>
     </div>
