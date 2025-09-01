@@ -1,21 +1,22 @@
+// app/page.tsx
+
 "use client";
 
 import React, { useState, useMemo } from "react";
+import { TooltipProvider } from "@/components/ui/tooltip";
 import StepList from "@/components/feature/text-proccessor/StepList";
 import ControlPanel from "@/components/feature/text-proccessor/ControlPanel";
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
-// Định nghĩa lại StepType và Step
 export enum StepType {
   Uppercase = "uppercase",
   Lowercase = "lowercase",
   Capitalize = "capitalize",
-  RemoveChars = "removeChars",
   Reverse = "reverse",
   Trim = "trim",
   Truncate = "truncate",
-  FindReplace = "findReplace", // Thêm vào đây
+  FindReplace = "findReplace",
   Count = "count",
   RemoveBlankLines = "removeBlankLines",
   RemoveDuplicateLines = "removeDuplicateLines",
@@ -25,16 +26,14 @@ export enum StepType {
   RemoveDiacritics = "removeDiacritics",
 }
 
-// Cập nhật kiểu Step cho FindReplace
 export type Step =
   | { id: string; type: StepType.Uppercase }
   | { id: string; type: StepType.Lowercase }
   | { id: string; type: StepType.Capitalize }
-  | { id: string; type: StepType.RemoveChars; chars: string }
   | { id: string; type: StepType.Reverse }
   | { id: string; type: StepType.Trim }
   | { id: string; type: StepType.Truncate; length: number }
-  | { id: string; type: StepType.FindReplace; find: string; replace: string; caseSensitive: boolean } // Thêm caseSensitive
+  | { id: string; type: StepType.FindReplace; find: string; replace: string; caseSensitive: boolean; useRegex: boolean } // Thêm caseSensitive và useRegex
   | { id: string; type: StepType.RemoveBlankLines }
   | { id: string; type: StepType.RemoveDuplicateLines }
   | { id: string; type: StepType.SentenceCase }
@@ -46,7 +45,6 @@ export const stepTypeNames: { [key in StepType]: string } = {
   [StepType.Uppercase]: "In hoa",
   [StepType.Lowercase]: "In thường",
   [StepType.Capitalize]: "Viết hoa đầu từ",
-  [StepType.RemoveChars]: "Xóa ký tự",
   [StepType.Reverse]: "Đảo ngược",
   [StepType.Trim]: "Xóa khoảng trắng",
   [StepType.Truncate]: "Cắt chuỗi",
@@ -95,18 +93,7 @@ const TextProcessor: React.FC = () => {
             letter.toUpperCase()
           );
           break;
-        case StepType.RemoveChars:
-          if (step.chars) {
-            const escaped = step.chars.replace(
-              /[-[\]{}()*+?.,\\^$|#\s]/g,
-              "\\$&"
-            );
-            const regex = new RegExp(`[${escaped}]`, "g");
-            currentText = currentText.replace(regex, "");
-          } else {
-            currentText = currentText.replace(/[^a-zA-Z0-9\s]/g, "");
-          }
-          break;
+
         case StepType.Reverse:
           currentText = currentText.split("").reverse().join("");
           break;
@@ -119,9 +106,10 @@ const TextProcessor: React.FC = () => {
           }
           break;
         case StepType.FindReplace:
-          const flags = step.caseSensitive ? 'g' : 'gi'; // Thêm cờ 'i' (case-insensitive)
+          const flags = step.caseSensitive ? 'g' : 'gi';
+          const regexPattern = step.useRegex ? step.find : step.find.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
           currentText = currentText.replace(
-            new RegExp(step.find, flags),
+            new RegExp(regexPattern, flags),
             step.replace
           );
           break;

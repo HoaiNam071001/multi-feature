@@ -1,8 +1,10 @@
+// components/feature/text-proccessor/StepList.tsx
+
 "use client";
 
 import React from "react";
 import { Button } from "@/components/ui/button";
-import { X, GripVertical, CaseSensitive } from "lucide-react";
+import { X, GripVertical, CaseSensitive, Regex } from "lucide-react";
 import {
   Tooltip,
   TooltipContent,
@@ -40,8 +42,6 @@ const SortableItem: React.FC<SortableItemProps> = ({ step, index, removeStep, st
 
   const getStepName = (s: Step) => {
     switch (s.type) {
-      case StepType.RemoveChars:
-        return `${stepTypeNames[s.type]}: "${s.chars}"`;
       case StepType.Truncate:
         return `${stepTypeNames[s.type]} (${s.length})`;
       case StepType.FindReplace:
@@ -71,12 +71,17 @@ const SortableItem: React.FC<SortableItemProps> = ({ step, index, removeStep, st
       <div className="flex-1 min-w-0">
         <div className="font-medium flex items-center truncate">
           <div className="truncate">{stepName}</div>
-          {step.type === StepType.FindReplace && (
+          {(step.type === StepType.FindReplace) && (
             <div
-              className={`ml-2 px-2 py-0.5 text-xs font-semibold rounded-full
+              className={`ml-2 px-2 py-0.5 text-xs font-semibold rounded-full flex items-center gap-1
                 ${step.caseSensitive ? 'bg-blue-500 text-white' : 'bg-gray-300 text-gray-700'}`}
             >
-              <CaseSensitive className="w-4 h-4" />
+              {step.caseSensitive ? 'A=a' : 'a=A'}
+              {step.type === StepType.FindReplace && step.useRegex && (
+                <div className="ml-1">
+                  <Regex className="w-3 h-3 text-current" />
+                </div>
+              )}
             </div>
           )}
         </div>

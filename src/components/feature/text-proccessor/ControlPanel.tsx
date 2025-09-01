@@ -1,4 +1,3 @@
-// components/feature/text-proccessor/ControlPanel.tsx
 
 "use client";
 
@@ -7,10 +6,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-// Cập nhật import
 import { Step, StepInput, StepType, stepTypeNames } from "./TextProccessor";
 import I18n from "@/components/utils/I18n";
-import { Copy, CaseSensitive, CaseLower } from "lucide-react"; // Thêm icon CaseSensitive, CaseLower
+import { Copy, CaseSensitive, Regex } from "lucide-react";
 import { useToast } from "@/hooks/useToast";
 
 interface ControlPanelProps {
@@ -28,12 +26,11 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
   addStep,
   handleClear,
 }) => {
-  const [charsToRemove, setCharsToRemove] = useState<string>("");
   const [truncateLength, setTruncateLength] = useState<string>("");
   const [findText, setFindText] = useState<string>("");
   const [replaceText, setReplaceText] = useState<string>("");
-  // State mới để kiểm soát phân biệt chữ hoa/thường
   const [caseSensitive, setCaseSensitive] = useState<boolean>(false);
+  const [useRegex, setUseRegex] = useState<boolean>(false);
 
   const showToast = useToast();
   const handleCopy = () => {
@@ -177,25 +174,6 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
 
       <div className="flex items-center gap-2 mb-3">
         <Input
-          value={charsToRemove}
-          onChange={(e) => setCharsToRemove(e.target.value)}
-          placeholder="Ký tự cần xóa"
-          className="flex-1"
-        />
-        <Button
-          onClick={() =>
-            addStep({
-              type: StepType.RemoveChars,
-              chars: charsToRemove,
-            } as StepInput)
-          }
-        >
-          <I18n value={stepTypeNames[StepType.RemoveChars]} />
-        </Button>
-      </div>
-
-      <div className="flex items-center gap-2 mb-3">
-        <Input
           type="number"
           value={truncateLength}
           onChange={(e) => setTruncateLength(e.target.value)}
@@ -231,11 +209,20 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
         {/* Nút phân biệt chữ hoa/thường */}
         <Button
           size="icon"
-          variant={caseSensitive ? "default" : "outline"} // highlight khi được bật
+          variant={caseSensitive ? "default" : "outline"}
           onClick={() => setCaseSensitive(!caseSensitive)}
           className="shrink-0"
         >
           <CaseSensitive className="w-4 h-4" />
+        </Button>
+        {/* Nút Regex */}
+        <Button
+          size="icon"
+          variant={useRegex ? "default" : "outline"}
+          onClick={() => setUseRegex(!useRegex)}
+          className="shrink-0"
+        >
+          <Regex className="w-4 h-4" />
         </Button>
         <Button
           onClick={() =>
@@ -243,7 +230,8 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
               type: StepType.FindReplace,
               find: findText,
               replace: replaceText,
-              caseSensitive: caseSensitive, // Thêm thuộc tính mới
+              caseSensitive: caseSensitive,
+              useRegex: useRegex,
             } as StepInput)
           }
         >
