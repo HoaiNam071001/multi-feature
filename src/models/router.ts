@@ -4,4 +4,5 @@ export enum RouterPath {
   CONTACT = "/contact",
   MINI_GAME = "/mini-game",
   PROVINCE_LOOKUP = "/province-lookup",
+  TEXT_PROCESSOR = "/text-processor",
 }

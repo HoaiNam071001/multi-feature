@@ -3,7 +3,7 @@ import FeatureGrid from "@/components/common/FeatureGrid";
 import React from "react";
 import { FeatureItem } from "@/components/common/FeatureCard";
 import { RouterPath } from "@/models/router";
-import { Gamepad2, MapPin } from "lucide-react";
+import { FileText, Gamepad2, MapPin } from "lucide-react";
 
 export const appFeatures: FeatureItem[] = [
   {
@@ -20,6 +20,13 @@ export const appFeatures: FeatureItem[] = [
     description:
       "Tìm kiếm thông tin chi tiết về 63 tỉnh thành Việt Nam với dữ liệu từ Bộ Nông nghiệp và Môi trường",
   },
+  {
+    name: "Xử Lý Văn Bản",
+    url: RouterPath.TEXT_PROCESSOR,
+    icon: <FileText />,
+    description:
+      "Xử lý văn bản với các tính năng như chuyển đổi thường xuyên, xóa ký tự đặc biệt, cắt ngắn văn bản, và nhiều hơn nữa",
+  }
 ];
 
 const HomePage = () => {
