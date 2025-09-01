@@ -1,9 +1,6 @@
-// app/page.tsx
-
 "use client";
 
 import React, { useState, useMemo } from "react";
-import { TooltipProvider } from "@/components/ui/tooltip";
 import StepList from "@/components/feature/text-proccessor/StepList";
 import ControlPanel from "@/components/feature/text-proccessor/ControlPanel";
 import { ToastContainer } from 'react-toastify';
@@ -18,7 +15,7 @@ export enum StepType {
   Reverse = "reverse",
   Trim = "trim",
   Truncate = "truncate",
-  FindReplace = "findReplace",
+  FindReplace = "findReplace", // Thêm vào đây
   Count = "count",
   RemoveBlankLines = "removeBlankLines",
   RemoveDuplicateLines = "removeDuplicateLines",
@@ -28,8 +25,8 @@ export enum StepType {
   RemoveDiacritics = "removeDiacritics",
 }
 
-// Cập nhật kiểu Step để có thêm thuộc tính 'id'
-export type Step = 
+// Cập nhật kiểu Step cho FindReplace
+export type Step =
   | { id: string; type: StepType.Uppercase }
   | { id: string; type: StepType.Lowercase }
   | { id: string; type: StepType.Capitalize }
@@ -37,7 +34,7 @@ export type Step =
   | { id: string; type: StepType.Reverse }
   | { id: string; type: StepType.Trim }
   | { id: string; type: StepType.Truncate; length: number }
-  | { id: string; type: StepType.FindReplace; find: string; replace: string }
+  | { id: string; type: StepType.FindReplace; find: string; replace: string; caseSensitive: boolean } // Thêm caseSensitive
   | { id: string; type: StepType.RemoveBlankLines }
   | { id: string; type: StepType.RemoveDuplicateLines }
   | { id: string; type: StepType.SentenceCase }
@@ -63,14 +60,12 @@ export const stepTypeNames: { [key in StepType]: string } = {
   [StepType.RemoveDiacritics]: "Loại bỏ dấu",
 };
 
-// Định nghĩa kiểu cho các bước đầu vào không có ID
 export type StepInput = Omit<Step, 'id'>;
 
 const TextProcessor: React.FC = () => {
   const [inputText, setInputText] = useState<string>("");
   const [steps, setSteps] = useState<Step[]>([]);
 
-  // Sửa kiểu dữ liệu của step từ `any` thành `StepInput`
   const addStep = (step: StepInput) => {
     const newStep: Step = { ...step, id: `step-${Date.now()}-${Math.random()}` } as Step;
     setSteps((prev) => [...prev, newStep]);
@@ -82,7 +77,7 @@ const TextProcessor: React.FC = () => {
   const reorderSteps = (newSteps: Step[]) => {
     setSteps(newSteps);
   };
-  
+
   const stepOutputs = useMemo(() => {
     const outputs: string[] = [];
     let currentText = inputText;
@@ -124,8 +119,9 @@ const TextProcessor: React.FC = () => {
           }
           break;
         case StepType.FindReplace:
+          const flags = step.caseSensitive ? 'g' : 'gi'; // Thêm cờ 'i' (case-insensitive)
           currentText = currentText.replace(
-            new RegExp(step.find, "g"),
+            new RegExp(step.find, flags),
             step.replace
           );
           break;
@@ -197,6 +193,7 @@ const TextProcessor: React.FC = () => {
           reorderSteps={reorderSteps}
         />
       </div>
+      <ToastContainer />
     </div>
   );
 };

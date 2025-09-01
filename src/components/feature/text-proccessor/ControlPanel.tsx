@@ -7,10 +7,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+// Cập nhật import
 import { Step, StepInput, StepType, stepTypeNames } from "./TextProccessor";
 import I18n from "@/components/utils/I18n";
-import { Copy } from "lucide-react";
-import { useToast } from "@/hooks/useToast"; // Import hook mới tạo
+import { Copy, CaseSensitive, CaseLower } from "lucide-react"; // Thêm icon CaseSensitive, CaseLower
+import { useToast } from "@/hooks/useToast";
 
 interface ControlPanelProps {
   inputText: string;
@@ -31,9 +32,10 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
   const [truncateLength, setTruncateLength] = useState<string>("");
   const [findText, setFindText] = useState<string>("");
   const [replaceText, setReplaceText] = useState<string>("");
-  const [prefix, setPrefix] = useState<string>(""); // State cho tiền tố
-  const [suffix, setSuffix] = useState<string>(""); // State cho hậu tố
-  const showToast = useToast(); // Gọi hook useToast
+  // State mới để kiểm soát phân biệt chữ hoa/thường
+  const [caseSensitive, setCaseSensitive] = useState<boolean>(false);
+
+  const showToast = useToast();
   const handleCopy = () => {
     navigator.clipboard.writeText(outputText);
     showToast.success("Đã sao chép văn bản thành công!");
@@ -43,7 +45,6 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
     <div>
       <div className="text-xl font-bold mb-4 flex items-center">
         <I18n value={"Điều khiển"} />
-
         <Button variant="destructive" className="ml-auto" onClick={handleClear}>
           <I18n value={"Xóa tất cả"} />
         </Button>
@@ -84,16 +85,16 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
             id="outputText"
             value={outputText}
             readOnly
-            className="w-full bg-gray-100 pr-10" // Thêm padding-right để tránh nội dung bị che
+            className="w-full bg-gray-100 pr-10"
             rows={4}
           />
           <Button
-            size="icon" // Kích thước nhỏ hơn cho icon
-            variant="ghost" // Loại bỏ nền
-            className="absolute top-2 right-2" // Đặt vị trí tuyệt đối
+            size="icon"
+            variant="ghost"
+            className="absolute top-2 right-2"
             onClick={handleCopy}
           >
-            <Copy className="w-4 h-4" /> {/* Icon copy */}
+            <Copy className="w-4 h-4" />
           </Button>
         </div>
         <div className="text-sm text-gray-600 flex justify-between">
@@ -110,42 +111,66 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
         </div>
       </div>
 
-      {/* Buttons */}
       <div className="flex flex-wrap gap-2 mb-4">
-        <Button onClick={() => addStep({ type: StepType.Uppercase })}>
+        <Button
+          onClick={() => addStep({ type: StepType.Uppercase } as StepInput)}
+        >
           <I18n value={stepTypeNames[StepType.Uppercase]} />
         </Button>
-        <Button onClick={() => addStep({ type: StepType.Lowercase })}>
+        <Button
+          onClick={() => addStep({ type: StepType.Lowercase } as StepInput)}
+        >
           <I18n value={stepTypeNames[StepType.Lowercase]} />
         </Button>
-        <Button onClick={() => addStep({ type: StepType.Capitalize })}>
+        <Button
+          onClick={() => addStep({ type: StepType.Capitalize } as StepInput)}
+        >
           <I18n value={stepTypeNames[StepType.Capitalize]} />
         </Button>
-        <Button onClick={() => addStep({ type: StepType.Reverse })}>
+        <Button
+          onClick={() => addStep({ type: StepType.Reverse } as StepInput)}
+        >
           <I18n value={stepTypeNames[StepType.Reverse]} />
         </Button>
-        <Button onClick={() => addStep({ type: StepType.Trim })}>
+        <Button onClick={() => addStep({ type: StepType.Trim } as StepInput)}>
           <I18n value={stepTypeNames[StepType.Trim]} />
         </Button>
-        <Button onClick={() => addStep({ type: StepType.RemoveBlankLines })}>
+        <Button
+          onClick={() =>
+            addStep({ type: StepType.RemoveBlankLines } as StepInput)
+          }
+        >
           <I18n value={stepTypeNames[StepType.RemoveBlankLines]} />
         </Button>
         <Button
-          onClick={() => addStep({ type: StepType.RemoveDuplicateLines })}
+          onClick={() =>
+            addStep({ type: StepType.RemoveDuplicateLines } as StepInput)
+          }
         >
           <I18n value={stepTypeNames[StepType.RemoveDuplicateLines]} />
         </Button>
-        <Button onClick={() => addStep({ type: StepType.SentenceCase })}>
+        <Button
+          onClick={() => addStep({ type: StepType.SentenceCase } as StepInput)}
+        >
           <I18n value={stepTypeNames[StepType.SentenceCase]} />
         </Button>
-        {/* Thêm các nút mới */}
-        <Button onClick={() => addStep({ type: StepType.SwapCase })}>
+        <Button
+          onClick={() => addStep({ type: StepType.SwapCase } as StepInput)}
+        >
           <I18n value={stepTypeNames[StepType.SwapCase]} />
         </Button>
-        <Button onClick={() => addStep({ type: StepType.RemoveExtraSpaces })}>
+        <Button
+          onClick={() =>
+            addStep({ type: StepType.RemoveExtraSpaces } as StepInput)
+          }
+        >
           <I18n value={stepTypeNames[StepType.RemoveExtraSpaces]} />
         </Button>
-        <Button onClick={() => addStep({ type: StepType.RemoveDiacritics })}>
+        <Button
+          onClick={() =>
+            addStep({ type: StepType.RemoveDiacritics } as StepInput)
+          }
+        >
           <I18n value={stepTypeNames[StepType.RemoveDiacritics]} />
         </Button>
       </div>
@@ -189,6 +214,7 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
         </Button>
       </div>
 
+      {/* Cụm Tìm & Thay thế được cập nhật */}
       <div className="flex items-center gap-2 mb-3">
         <Input
           value={findText}
@@ -202,12 +228,22 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
           placeholder="Thay thế bằng"
           className="w-full"
         />
+        {/* Nút phân biệt chữ hoa/thường */}
+        <Button
+          size="icon"
+          variant={caseSensitive ? "default" : "outline"} // highlight khi được bật
+          onClick={() => setCaseSensitive(!caseSensitive)}
+          className="shrink-0"
+        >
+          <CaseSensitive className="w-4 h-4" />
+        </Button>
         <Button
           onClick={() =>
             addStep({
               type: StepType.FindReplace,
               find: findText,
               replace: replaceText,
+              caseSensitive: caseSensitive, // Thêm thuộc tính mới
             } as StepInput)
           }
         >
