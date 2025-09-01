@@ -5,7 +5,7 @@ import { FeatureItem } from "@/components/common/FeatureCard";
 import { RouterPath } from "@/models/router";
 import { Gamepad2, MapPin } from "lucide-react";
 
-export const features: FeatureItem[] = [
+export const appFeatures: FeatureItem[] = [
   {
     name: "Mini Game",
     url: RouterPath.MINI_GAME,
@@ -39,7 +39,7 @@ const HomePage = () => {
       </section>
 
       {/* Features Section */}
-      <FeatureGrid features={features} title="Các Tính Năng Nổi Bật" />
+      <FeatureGrid features={appFeatures} title="Các Tính Năng Nổi Bật" />
     </div>
   );
 };

@@ -14,13 +14,6 @@ import {
 
 export const items: FeatureItem[] = [
   {
-    name: "Mini Game",
-    url: RouterPath.MINI_GAME,
-    icon: <Gamepad2 className="w-6 h-6" />,
-    description:
-      "Bộ sưu tập các trò chơi trí tuệ thú vị giúp rèn luyện tư duy và giải trí",
-  },
-  {
     name: "Sudoku",
     url: `${RouterPath.MINI_GAME}/sudoku`,
     icon: <Puzzle className="w-6 h-6" />,

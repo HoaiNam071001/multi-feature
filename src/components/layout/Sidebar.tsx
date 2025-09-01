@@ -9,23 +9,19 @@ import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { HEADER_HEIGHT } from "@/models/layout";
 import { I18n } from "@/components/utils/I18n";
 import { RouterPath } from "@/models/router";
+import { appFeatures } from "../feature/home/HomePage";
 
 const sidebarItems = [
   {
     label: "Trang chủ",
     href: RouterPath.HOME,
-    icon: Home,
+    icon: <Home/>,
   },
-  {
-    label: "Trò chơi",
-    href: RouterPath.MINI_GAME,
-    icon: Gamepad2,
-  },
-  {
-    label: "Giới thiệu",
-    href: RouterPath.ABOUT,
-    icon: Info,
-  },
+  ...appFeatures.map(e=> ({
+    label:e.name,
+    href: e.url,
+    icon: e.icon,
+  }))
 ];
 
 const SidebarItem = ({
@@ -46,17 +42,17 @@ const SidebarItem = ({
           border
         ${
           isActive
-            ? "bg-sidebar-primary text-sidebar-primary-foreground shadow-sm"
-            : "hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+            ? "bg-[var(--primary)] text-white shadow-sm"
+            : "text-[var(--primary)] hover:bg-[var(--primary)] hover:text-white"
         } ${isCollapsed ? "justify-center px-2" : " px-3"} 
       `}
       title={isCollapsed ? item.label : undefined}
     >
       {isActive && (
-        <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-sidebar-primary rounded-r-full" />
+        <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-[[var(--primary)]] rounded-r-full" />
       )}
       {isCollapsed ? (
-        <IconComponent className="h-5 w-5" />
+        item.icon
       ) : (
         <span className="flex-1">
           <I18n value={item.label} />
@@ -86,7 +82,7 @@ export const Sidebar = () => {
           isOpen ? "w-64" : "w-16"
         }`}>
       <div
-        className={`fixed hidden md:block bg-sidebar text-sidebar-foreground transition-all duration-300 border-r border-sidebar-border shadow-lg ${
+        className={`fixed hidden md:block bg-sidebar text-sidebar-foreground  border-r border-sidebar-border shadow-lg ${
           isOpen ? "w-64" : "w-16"
         }`}
         style={{

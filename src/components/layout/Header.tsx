@@ -14,26 +14,7 @@ export const Header = () => (
       <h1 className="text-3xl font-extrabold tracking-tight">
       <VenetianMask />
       </h1>
-      <nav className="space-x-6 hidden md:flex">
-        <Link
-          href="/"
-          className="text-lg hover:text-blue-300 transition-colors duration-200"
-        >
-          <I18n value="Trang chủ" />
-        </Link>
-        <Link
-          href="#games"
-          className="text-lg hover:text-blue-300 transition-colors duration-200"
-        >
-          <I18n value="Trò chơi" />
-        </Link>
-        <Link
-          href="#about"
-          className="text-lg hover:text-blue-300 transition-colors duration-200"
-        >
-          <I18n value="Giới thiệu" />
-        </Link>
-      </nav>
+
     </div>
   </header>
 );
