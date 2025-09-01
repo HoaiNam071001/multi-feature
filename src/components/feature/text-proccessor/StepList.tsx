@@ -4,13 +4,13 @@
 
 import React from "react";
 import { Button } from "@/components/ui/button";
-import { X, GripVertical, CaseSensitive, Regex } from "lucide-react";
+import { X, GripVertical, CaseSensitive, Regex, CaseLower } from "lucide-react";
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { Step, StepType, stepTypeNames } from "./TextProccessor";
+import { Step, StepType, stepTypeNames } from "./handlers";
 import I18n from "@/components/utils/I18n";
 
 import { DndContext, closestCenter, useSensor, useSensors, PointerSensor, DragEndEvent } from '@dnd-kit/core';
@@ -31,6 +31,26 @@ interface SortableItemProps {
   stepOutputs: string[];
 }
 
+// Component con để hiển thị các tùy chọn chung
+const StepOptions: React.FC<{ caseSensitive?: boolean; useRegex?: boolean }> = ({ caseSensitive, useRegex }) => (
+  <div className="flex items-center gap-1 ml-2">
+    {caseSensitive !== undefined && (
+      <div
+        className={`px-2 py-0.5 text-xs font-semibold rounded-full flex items-center gap-1 ${
+          caseSensitive ? 'bg-blue-500 text-white' : 'bg-gray-300 text-gray-700'
+        }`}
+      >
+        {caseSensitive ? <CaseSensitive className="w-3 h-3" /> : <CaseLower className="w-3 h-3" />}
+      </div>
+    )}
+    {useRegex && (
+      <div className="bg-gray-300 text-gray-700 px-2 py-0.5 text-xs font-semibold rounded-full flex items-center gap-1">
+        <Regex className="w-3 h-3 text-current" />
+      </div>
+    )}
+  </div>
+);
+
 // Component con cho từng item có thể kéo thả
 const SortableItem: React.FC<SortableItemProps> = ({ step, index, removeStep, stepOutputs }) => {
   const { attributes, listeners, setNodeRef, transform, transition } = useSortable({ id: step.id });
@@ -45,9 +65,16 @@ const SortableItem: React.FC<SortableItemProps> = ({ step, index, removeStep, st
       case StepType.Truncate:
         return `${stepTypeNames[s.type]} (${s.length})`;
       case StepType.FindReplace:
-        return `${stepTypeNames[s.type]}: "${s.find}" & "${s.replace}"`;
-      case StepType.RemoveDiacritics:
-        return `${stepTypeNames[s.type]}`;
+        return `${stepTypeNames[s.type]}: "${s.find}" -> "${s.replace}"`;
+      case StepType.ReplaceHtmlClassName:
+        const tagFilterClassName = s.tagFilter?.length ? `(thẻ: ${s.tagFilter.join(", ")})` : "";
+        return `${stepTypeNames[s.type]}: "${s.find}" -> "${s.replace}" ${tagFilterClassName}`;
+      case StepType.ReplaceHtmlAttributes:
+        const tagFilterAttr = s.tagFilter?.length ? `(thẻ: ${s.tagFilter.join(", ")})` : "";
+        return `${stepTypeNames[s.type]} (${s.attributeName}): "${s.find}" -> "${s.replace}" ${tagFilterAttr}`;
+      case StepType.ReplaceHtmlContent:
+        const tagFilterContent = s.tagFilter?.length ? `(thẻ: ${s.tagFilter.join(", ")})` : "";
+        return `${stepTypeNames[s.type]}: "${s.find}" -> "${s.replace}" ${tagFilterContent}`;
       default:
         return stepTypeNames[s.type] || "Không xác định";
     }
@@ -71,18 +98,11 @@ const SortableItem: React.FC<SortableItemProps> = ({ step, index, removeStep, st
       <div className="flex-1 min-w-0">
         <div className="font-medium flex items-center truncate">
           <div className="truncate">{stepName}</div>
-          {(step.type === StepType.FindReplace) && (
-            <div
-              className={`ml-2 px-2 py-0.5 text-xs font-semibold rounded-full flex items-center gap-1
-                ${step.caseSensitive ? 'bg-blue-500 text-white' : 'bg-gray-300 text-gray-700'}`}
-            >
-              {step.caseSensitive ? 'A=a' : 'a=A'}
-              {step.type === StepType.FindReplace && step.useRegex && (
-                <div className="ml-1">
-                  <Regex className="w-3 h-3 text-current" />
-                </div>
-              )}
-            </div>
+          {(step.type === StepType.FindReplace ||
+            step.type === StepType.ReplaceHtmlClassName ||
+            step.type === StepType.ReplaceHtmlAttributes ||
+            step.type === StepType.ReplaceHtmlContent) && (
+            <StepOptions caseSensitive={step.caseSensitive} useRegex={step.useRegex} />
           )}
         </div>
         <Tooltip>

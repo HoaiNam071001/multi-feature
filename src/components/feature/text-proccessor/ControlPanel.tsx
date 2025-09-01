@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useState } from "react";
@@ -6,11 +5,137 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Step, StepInput, StepType, stepTypeNames } from "./TextProccessor";
+import { StepInput, StepType, stepTypeNames } from "./handlers";
 import I18n from "@/components/utils/I18n";
-import { Copy, CaseSensitive, Regex } from "lucide-react";
+import { Copy, CaseSensitive, Regex, CaseLower } from "lucide-react";
 import { useToast } from "@/hooks/useToast";
+import { ReplaceAttributesControl } from "./controls/html-attribute";
+import { ReplaceStylesControl } from "./controls/html-style";
+import { ReplaceClassNameControl } from "./controls/html-class";
+import { ReplaceContentControl } from "./controls/html-content";
+import { TruncateControl } from "./controls/truncate";
+import { FindReplaceControl } from "./controls/replace";
 
+// =========================================================================
+// 1. Component con: Hiển thị Input/Output và thống kê
+// =========================================================================
+const InputOutputSection: React.FC<{
+  inputText: string;
+  outputText: string;
+  setInputText: (text: string) => void;
+  handleCopy: () => void;
+}> = ({ inputText, outputText, setInputText, handleCopy }) => (
+  <>
+    <div className="mb-4">
+      <Label className="mb-2" htmlFor="inputText">
+        <I18n value={"Văn bản đầu vào"} />
+      </Label>
+      <Textarea
+        id="inputText"
+        value={inputText}
+        onChange={(e) => setInputText(e.target.value)}
+        className="w-full"
+        rows={4}
+        placeholder="Nhập văn bản của bạn tại đây..."
+      />
+      <div className="text-sm text-gray-600 flex justify-between">
+        <span>
+          <I18n value={"Ký tự"} />: {inputText.length}
+        </span>
+        <span>
+          <I18n value={"Từ"} />:{" "}
+          {inputText.split(/\s+/).filter((w) => w.length > 0).length}
+        </span>
+        <span>
+          <I18n value={"Dòng"} />: {inputText.split("\n").length}
+        </span>
+      </div>
+    </div>
+
+    <div className="mb-4">
+      <Label className="mb-2" htmlFor="outputText">
+        <I18n value={"Văn bản đầu ra"} />
+      </Label>
+      <div className="relative">
+        <Textarea
+          id="outputText"
+          value={outputText}
+          readOnly
+          className="w-full bg-gray-100 pr-10"
+          rows={4}
+        />
+        <Button
+          size="icon"
+          variant="ghost"
+          className="absolute top-2 right-2"
+          onClick={handleCopy}
+        >
+          <Copy className="w-4 h-4" />
+        </Button>
+      </div>
+      <div className="text-sm text-gray-600 flex justify-between">
+        <span>
+          <I18n value={"Ký tự"} />: {outputText.length}
+        </span>
+        <span>
+          <I18n value={"Từ"} />:{" "}
+          {outputText.split(/\s+/).filter((w) => w.length > 0).length}
+        </span>
+        <span>
+          <I18n value={"Dòng"} />: {outputText.split("\n").length}
+        </span>
+      </div>
+    </div>
+  </>
+);
+
+// =========================================================================
+// 2. Component con: Nhóm các nút xử lý văn bản cơ bản
+// =========================================================================
+const TextButtons: React.FC<{ addStep: (step: StepInput) => void }> = ({
+  addStep,
+}) => (
+  <div className="flex flex-wrap gap-2 mb-4">
+    {[
+      StepType.Uppercase,
+      StepType.Lowercase,
+      StepType.Capitalize,
+      StepType.Reverse,
+      StepType.Trim,
+      StepType.RemoveBlankLines,
+      StepType.RemoveDuplicateLines,
+      StepType.SentenceCase,
+      StepType.SwapCase,
+      StepType.RemoveExtraSpaces,
+      StepType.RemoveDiacritics,
+    ].map((type) => (
+      <Button key={type} onClick={() => addStep({ type } as StepInput)}>
+        <I18n value={stepTypeNames[type]} />
+      </Button>
+    ))}
+  </div>
+);
+
+// =========================================================================
+// Component chính: HtmlControlPanel
+// =========================================================================
+const HtmlControlPanel: React.FC<{ addStep: (step: StepInput) => void }> = ({
+  addStep,
+}) => (
+  <>
+    <h3 className="text-lg font-semibold mt-6 mb-2">
+      <I18n value="Xử lý HTML" />
+    </h3>
+    <ReplaceStylesControl addStep={addStep} />
+    <ReplaceAttributesControl addStep={addStep} />
+    <ReplaceClassNameControl addStep={addStep} />
+    <ReplaceContentControl addStep={addStep} />
+  </>
+);
+
+// =========================================================================
+// Component chính: ControlPanel (chỉ render các component con)
+// =========================================================================
 interface ControlPanelProps {
   inputText: string;
   outputText: string;
@@ -26,12 +151,6 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
   addStep,
   handleClear,
 }) => {
-  const [truncateLength, setTruncateLength] = useState<string>("");
-  const [findText, setFindText] = useState<string>("");
-  const [replaceText, setReplaceText] = useState<string>("");
-  const [caseSensitive, setCaseSensitive] = useState<boolean>(false);
-  const [useRegex, setUseRegex] = useState<boolean>(false);
-
   const showToast = useToast();
   const handleCopy = () => {
     navigator.clipboard.writeText(outputText);
@@ -46,198 +165,16 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
           <I18n value={"Xóa tất cả"} />
         </Button>
       </div>
-
-      <div className="mb-4">
-        <Label className="mb-2" htmlFor="inputText">
-          <I18n value={"Văn bản đầu vào"} />
-        </Label>
-        <Textarea
-          id="inputText"
-          value={inputText}
-          onChange={(e) => setInputText(e.target.value)}
-          className="w-full"
-          rows={4}
-          placeholder="Nhập văn bản của bạn tại đây..."
-        />
-        <div className="text-sm text-gray-600 flex justify-between">
-          <span>
-            <I18n value={"Ký tự"} />: {inputText.length}
-          </span>
-          <span>
-            <I18n value={"Từ"} />:{" "}
-            {inputText.split(/\s+/).filter((w) => w.length > 0).length}
-          </span>
-          <span>
-            <I18n value={"Dòng"} />: {inputText.split("\n").length}
-          </span>
-        </div>
-      </div>
-
-      <div className="mb-4">
-        <Label className="mb-2" htmlFor="outputText">
-          <I18n value={"Văn bản đầu ra"} />
-        </Label>
-        <div className="relative">
-          <Textarea
-            id="outputText"
-            value={outputText}
-            readOnly
-            className="w-full bg-gray-100 pr-10"
-            rows={4}
-          />
-          <Button
-            size="icon"
-            variant="ghost"
-            className="absolute top-2 right-2"
-            onClick={handleCopy}
-          >
-            <Copy className="w-4 h-4" />
-          </Button>
-        </div>
-        <div className="text-sm text-gray-600 flex justify-between">
-          <span>
-            <I18n value={"Ký tự"} />: {outputText.length}
-          </span>
-          <span>
-            <I18n value={"Từ"} />:{" "}
-            {outputText.split(/\s+/).filter((w) => w.length > 0).length}
-          </span>
-          <span>
-            <I18n value={"Dòng"} />: {outputText.split("\n").length}
-          </span>
-        </div>
-      </div>
-
-      <div className="flex flex-wrap gap-2 mb-4">
-        <Button
-          onClick={() => addStep({ type: StepType.Uppercase } as StepInput)}
-        >
-          <I18n value={stepTypeNames[StepType.Uppercase]} />
-        </Button>
-        <Button
-          onClick={() => addStep({ type: StepType.Lowercase } as StepInput)}
-        >
-          <I18n value={stepTypeNames[StepType.Lowercase]} />
-        </Button>
-        <Button
-          onClick={() => addStep({ type: StepType.Capitalize } as StepInput)}
-        >
-          <I18n value={stepTypeNames[StepType.Capitalize]} />
-        </Button>
-        <Button
-          onClick={() => addStep({ type: StepType.Reverse } as StepInput)}
-        >
-          <I18n value={stepTypeNames[StepType.Reverse]} />
-        </Button>
-        <Button onClick={() => addStep({ type: StepType.Trim } as StepInput)}>
-          <I18n value={stepTypeNames[StepType.Trim]} />
-        </Button>
-        <Button
-          onClick={() =>
-            addStep({ type: StepType.RemoveBlankLines } as StepInput)
-          }
-        >
-          <I18n value={stepTypeNames[StepType.RemoveBlankLines]} />
-        </Button>
-        <Button
-          onClick={() =>
-            addStep({ type: StepType.RemoveDuplicateLines } as StepInput)
-          }
-        >
-          <I18n value={stepTypeNames[StepType.RemoveDuplicateLines]} />
-        </Button>
-        <Button
-          onClick={() => addStep({ type: StepType.SentenceCase } as StepInput)}
-        >
-          <I18n value={stepTypeNames[StepType.SentenceCase]} />
-        </Button>
-        <Button
-          onClick={() => addStep({ type: StepType.SwapCase } as StepInput)}
-        >
-          <I18n value={stepTypeNames[StepType.SwapCase]} />
-        </Button>
-        <Button
-          onClick={() =>
-            addStep({ type: StepType.RemoveExtraSpaces } as StepInput)
-          }
-        >
-          <I18n value={stepTypeNames[StepType.RemoveExtraSpaces]} />
-        </Button>
-        <Button
-          onClick={() =>
-            addStep({ type: StepType.RemoveDiacritics } as StepInput)
-          }
-        >
-          <I18n value={stepTypeNames[StepType.RemoveDiacritics]} />
-        </Button>
-      </div>
-
-      <div className="flex items-center gap-2 mb-3">
-        <Input
-          type="number"
-          value={truncateLength}
-          onChange={(e) => setTruncateLength(e.target.value)}
-          placeholder="Chiều dài cắt chuỗi"
-          className="flex-1"
-        />
-        <Button
-          onClick={() =>
-            addStep({
-              type: StepType.Truncate,
-              length: parseInt(truncateLength, 10),
-            } as StepInput)
-          }
-        >
-          <I18n value={stepTypeNames[StepType.Truncate]} />
-        </Button>
-      </div>
-
-      {/* Cụm Tìm & Thay thế được cập nhật */}
-      <div className="flex items-center gap-2 mb-3">
-        <Input
-          value={findText}
-          onChange={(e) => setFindText(e.target.value)}
-          placeholder="Tìm kiếm"
-          className="w-full"
-        />
-        <Input
-          value={replaceText}
-          onChange={(e) => setReplaceText(e.target.value)}
-          placeholder="Thay thế bằng"
-          className="w-full"
-        />
-        {/* Nút phân biệt chữ hoa/thường */}
-        <Button
-          size="icon"
-          variant={caseSensitive ? "default" : "outline"}
-          onClick={() => setCaseSensitive(!caseSensitive)}
-          className="shrink-0"
-        >
-          <CaseSensitive className="w-4 h-4" />
-        </Button>
-        {/* Nút Regex */}
-        <Button
-          size="icon"
-          variant={useRegex ? "default" : "outline"}
-          onClick={() => setUseRegex(!useRegex)}
-          className="shrink-0"
-        >
-          <Regex className="w-4 h-4" />
-        </Button>
-        <Button
-          onClick={() =>
-            addStep({
-              type: StepType.FindReplace,
-              find: findText,
-              replace: replaceText,
-              caseSensitive: caseSensitive,
-              useRegex: useRegex,
-            } as StepInput)
-          }
-        >
-          <I18n value={stepTypeNames[StepType.FindReplace]} />
-        </Button>
-      </div>
+      <InputOutputSection
+        inputText={inputText}
+        outputText={outputText}
+        setInputText={setInputText}
+        handleCopy={handleCopy}
+      />
+      <TextButtons addStep={addStep} />
+      <TruncateControl addStep={addStep} />
+      <FindReplaceControl addStep={addStep} />
+      <HtmlControlPanel addStep={addStep} />
     </div>
   );
 };
