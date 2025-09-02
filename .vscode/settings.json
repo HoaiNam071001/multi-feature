@@ -1,0 +1,9 @@
+{
+    "javascript.suggest.autoImports": true,
+    "typescript.suggest.autoImports": true,
+    "python.analysis.autoImportCompletions": true,
+    "editor.codeActionsOnSave": {
+        "source.organizeImports": true,
+        "source.addMissingImports": true
+    }
+}

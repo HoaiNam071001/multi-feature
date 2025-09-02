@@ -1,14 +1,14 @@
 "use client";
 
-import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Menu, X, Home, Gamepad2, Info, ArrowLeftToLine } from "lucide-react";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { I18n } from "@/components/utils/I18n";
+import { HEADER_HEIGHT } from "@/models/layout";
+import { RouterPath } from "@/models/router";
+import { ArrowLeftToLine, Home, Menu } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { HEADER_HEIGHT } from "@/models/layout";
-import { I18n } from "@/components/utils/I18n";
-import { RouterPath } from "@/models/router";
+import { useState } from "react";
 import { appFeatures } from "../feature/home/HomePage";
 
 const sidebarItems = [
@@ -33,8 +33,6 @@ const SidebarItem = ({
   isActive: boolean;
   isCollapsed?: boolean;
 }) => {
-  const IconComponent = item.icon;
-
   return (
     <Link
       href={item.href || ""}

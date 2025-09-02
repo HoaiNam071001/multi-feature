@@ -1,8 +1,8 @@
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import I18n from "@/components/utils/I18n";
 import { useState } from "react";
 import { StepInput, StepType, stepTypeNames } from "../handlers";
-import { Button } from "@/components/ui/button";
-import I18n from "@/components/utils/I18n";
-import { Input } from "@/components/ui/input";
 
 export const TruncateControl: React.FC<{ addStep: (step: StepInput) => void }> = ({
     addStep,

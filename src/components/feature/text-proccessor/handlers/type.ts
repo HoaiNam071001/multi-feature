@@ -17,6 +17,7 @@ export enum StepType {
     ReplaceHtmlAttributes = "replaceHtmlAttributes",
     ReplaceHtmlClassName = "replaceHtmlClassName",
     ReplaceHtmlContent = "replaceHtmlContent",
+      ReplaceTagName = "replaceTagName",
   }
   
   export type Step =
@@ -41,42 +42,61 @@ export enum StepType {
     | { id: string; type: StepType.RemoveExtraSpaces }
     | { id: string; type: StepType.RemoveDiacritics }
     | {
-        id: string;
-        type: StepType.ReplaceHtmlStyles;
-        find: string;
-        replace: string;
-        tagFilter?: string[];
-        useRegex?: boolean;
-        caseSensitive?: boolean;
-      }
-    | {
-        id: string;
-        type: StepType.ReplaceHtmlAttributes;
-        find: string;
-        replace: string;
-        attributeName?: string;
-        tagFilter?: string[];
-        useRegex?: boolean;
-        caseSensitive?: boolean;
-      }
-    | {
-        id: string;
-        type: StepType.ReplaceHtmlClassName;
-        find: string;
-        replace: string;
-        tagFilter?: string[];
-        useRegex?: boolean;
-        caseSensitive?: boolean;
-      }
-    | {
-        id: string;
-        type: StepType.ReplaceHtmlContent;
-        find: string;
-        replace: string;
-        tagFilter?: string[];
-        useRegex?: boolean;
-        caseSensitive?: boolean;
-      };
+      id: string;
+      type: StepType.ReplaceHtmlStyles;
+      find: string;
+      replace: string;
+      tagFilter?: string[];
+      classFilter?: string;
+      useRegex?: boolean;
+      caseSensitive?: boolean;
+      match?: boolean;
+    }
+  | {
+      id: string;
+      type: StepType.ReplaceHtmlAttributes;
+      find: string;
+      replace: string;
+      attributeName?: string;
+      tagFilter?: string[];
+      classFilter?: string;
+      useRegex?: boolean;
+      caseSensitive?: boolean;
+      match?: boolean;
+    }
+  | {
+      id: string;
+      type: StepType.ReplaceHtmlClassName;
+      find: string;
+      replace: string;
+      tagFilter?: string[];
+      classFilter?: string;
+      useRegex?: boolean;
+      caseSensitive?: boolean;
+      match?: boolean;
+    }
+  | {
+      id: string;
+      type: StepType.ReplaceHtmlContent;
+      find: string;
+      replace: string;
+      tagFilter?: string[];
+      classFilter?: string;
+      useRegex?: boolean;
+      caseSensitive?: boolean;
+      match?: boolean;
+    }
+  | {
+      id: string;
+      type: StepType.ReplaceTagName;
+      find: string;
+      replace: string;
+      tagFilter?: string[];
+      classFilter?: string;
+      useRegex?: boolean;
+      caseSensitive?: boolean;
+      match?: boolean;
+    };
   
   export const stepTypeNames: { [key in StepType]: string } = {
     [StepType.Uppercase]: "In hoa",
@@ -97,6 +117,7 @@ export enum StepType {
     [StepType.ReplaceHtmlAttributes]: "Attr",
     [StepType.ReplaceHtmlClassName]: "class",
     [StepType.ReplaceHtmlContent]: "Content",
+    [StepType.ReplaceTagName]: "Tag",
   };
   
   export type StepInput = Omit<Step, "id">;

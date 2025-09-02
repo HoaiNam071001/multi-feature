@@ -1,8 +1,6 @@
 // Header Component
 
 import { HEADER_HEIGHT } from "@/models/layout";
-import Link from "next/link";
-import { I18n } from "../utils/I18n";
 import { VenetianMask } from "lucide-react";
 
 export const Header = () => (

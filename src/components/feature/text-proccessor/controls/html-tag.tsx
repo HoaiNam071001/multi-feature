@@ -2,23 +2,14 @@
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import I18n from "@/components/utils/I18n";
-import {
-  CaseSensitive,
-  CheckCircle,
-  Fence,
-  Regex
-} from "lucide-react";
+import { CaseSensitive, CheckCircle, Dumbbell, Regex } from "lucide-react";
 import { useState } from "react";
 import { StepInput, StepType } from "../handlers";
 
-// Component: Thay thế Class
-export const ReplaceClassNameControl: React.FC<{
+// Component: Thay thế Tên Thẻ
+export const ReplaceTagNameControl: React.FC<{
   addStep: (step: StepInput) => void;
 }> = ({ addStep }) => {
   const [find, setFind] = useState<string>("");
@@ -39,8 +30,8 @@ export const ReplaceClassNameControl: React.FC<{
     <Popover>
       <PopoverTrigger asChild>
         <Button variant="outline" className="justify-start">
-          <Fence className="w-4 h-4 mr-2" />
-          <I18n value="Class" />
+          <Dumbbell className="w-4 h-4 mr-2" />
+          <I18n value="Tag" />
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-full">
@@ -49,7 +40,7 @@ export const ReplaceClassNameControl: React.FC<{
             <Input
               value={find}
               onChange={(e) => setFind(e.target.value)}
-              placeholder="ClassName tìm kiếm"
+              placeholder="Tên thẻ tìm kiếm"
               className="flex-1"
             />
             <Input
@@ -108,7 +99,7 @@ export const ReplaceClassNameControl: React.FC<{
               className="flex-1"
               onClick={() =>
                 addStep({
-                  type: StepType.ReplaceHtmlClassName,
+                  type: StepType.ReplaceTagName,
                   find: find,
                   replace: "",
                   tagFilter: parseCommaSeparated(tagFilter),
@@ -125,7 +116,7 @@ export const ReplaceClassNameControl: React.FC<{
               className="flex-1"
               onClick={() =>
                 addStep({
-                  type: StepType.ReplaceHtmlClassName,
+                  type: StepType.ReplaceTagName,
                   find: find,
                   replace: replace,
                   tagFilter: parseCommaSeparated(tagFilter),

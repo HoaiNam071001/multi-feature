@@ -1,9 +1,9 @@
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import I18n from "@/components/utils/I18n";
+import { CaseSensitive, Regex } from "lucide-react";
 import { useState } from "react";
 import { StepInput, StepType, stepTypeNames } from "../handlers";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { CaseSensitive, Regex } from "lucide-react";
-import I18n from "@/components/utils/I18n";
 
 export const FindReplaceControl: React.FC<{ addStep: (step: StepInput) => void }> = ({
   addStep,

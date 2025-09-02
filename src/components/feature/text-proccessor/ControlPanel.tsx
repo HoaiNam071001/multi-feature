@@ -1,101 +1,27 @@
 "use client";
 
-import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { StepInput, StepType, stepTypeNames } from "./handlers";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import I18n from "@/components/utils/I18n";
-import { Copy, CaseSensitive, Regex, CaseLower } from "lucide-react";
 import { useToast } from "@/hooks/useToast";
+import React from "react";
 import { ReplaceAttributesControl } from "./controls/html-attribute";
-import { ReplaceStylesControl } from "./controls/html-style";
 import { ReplaceClassNameControl } from "./controls/html-class";
 import { ReplaceContentControl } from "./controls/html-content";
-import { TruncateControl } from "./controls/truncate";
+import { ReplaceStylesControl } from "./controls/html-style";
+import { ReplaceTagNameControl } from "./controls/html-tag";
 import { FindReplaceControl } from "./controls/replace";
+import { TruncateControl } from "./controls/truncate";
+import { StepInput, StepType, stepTypeNames } from "./handlers";
+import { InputOutputSection } from "./InputOutputSection";
 
 // =========================================================================
-// 1. Component con: Hiển thị Input/Output và thống kê
-// =========================================================================
-const InputOutputSection: React.FC<{
-  inputText: string;
-  outputText: string;
-  setInputText: (text: string) => void;
-  handleCopy: () => void;
-}> = ({ inputText, outputText, setInputText, handleCopy }) => (
-  <>
-    <div className="mb-4">
-      <Label className="mb-2" htmlFor="inputText">
-        <I18n value={"Văn bản đầu vào"} />
-      </Label>
-      <Textarea
-        id="inputText"
-        value={inputText}
-        onChange={(e) => setInputText(e.target.value)}
-        className="w-full"
-        rows={4}
-        placeholder="Nhập văn bản của bạn tại đây..."
-      />
-      <div className="text-sm text-gray-600 flex justify-between">
-        <span>
-          <I18n value={"Ký tự"} />: {inputText.length}
-        </span>
-        <span>
-          <I18n value={"Từ"} />:{" "}
-          {inputText.split(/\s+/).filter((w) => w.length > 0).length}
-        </span>
-        <span>
-          <I18n value={"Dòng"} />: {inputText.split("\n").length}
-        </span>
-      </div>
-    </div>
-
-    <div className="mb-4">
-      <Label className="mb-2" htmlFor="outputText">
-        <I18n value={"Văn bản đầu ra"} />
-      </Label>
-      <div className="relative">
-        <Textarea
-          id="outputText"
-          value={outputText}
-          readOnly
-          className="w-full bg-gray-100 pr-10"
-          rows={4}
-        />
-        <Button
-          size="icon"
-          variant="ghost"
-          className="absolute top-2 right-2"
-          onClick={handleCopy}
-        >
-          <Copy className="w-4 h-4" />
-        </Button>
-      </div>
-      <div className="text-sm text-gray-600 flex justify-between">
-        <span>
-          <I18n value={"Ký tự"} />: {outputText.length}
-        </span>
-        <span>
-          <I18n value={"Từ"} />:{" "}
-          {outputText.split(/\s+/).filter((w) => w.length > 0).length}
-        </span>
-        <span>
-          <I18n value={"Dòng"} />: {outputText.split("\n").length}
-        </span>
-      </div>
-    </div>
-  </>
-);
-
-// =========================================================================
-// 2. Component con: Nhóm các nút xử lý văn bản cơ bản
+// Component con: Nhóm các nút xử lý văn bản cơ bản
 // =========================================================================
 const TextButtons: React.FC<{ addStep: (step: StepInput) => void }> = ({
   addStep,
 }) => (
-  <div className="flex flex-wrap gap-2 mb-4">
+  <div className="grid grid-cols-2 gap-2 mb-4">
     {[
       StepType.Uppercase,
       StepType.Lowercase,
@@ -109,7 +35,12 @@ const TextButtons: React.FC<{ addStep: (step: StepInput) => void }> = ({
       StepType.RemoveExtraSpaces,
       StepType.RemoveDiacritics,
     ].map((type) => (
-      <Button key={type} onClick={() => addStep({ type } as StepInput)}>
+      <Button
+        key={type}
+        onClick={() => addStep({ type } as StepInput)}
+        variant="outline"
+        
+      >
         <I18n value={stepTypeNames[type]} />
       </Button>
     ))}
@@ -117,24 +48,35 @@ const TextButtons: React.FC<{ addStep: (step: StepInput) => void }> = ({
 );
 
 // =========================================================================
-// Component chính: HtmlControlPanel
+// Component con: Nhóm các control xử lý HTML
 // =========================================================================
 const HtmlControlPanel: React.FC<{ addStep: (step: StepInput) => void }> = ({
   addStep,
 }) => (
-  <>
-    <h3 className="text-lg font-semibold mt-6 mb-2">
-      <I18n value="Xử lý HTML" />
-    </h3>
+  <div className="flex flex-wrap gap-3">
+    <ReplaceTagNameControl addStep={addStep} />
     <ReplaceStylesControl addStep={addStep} />
     <ReplaceAttributesControl addStep={addStep} />
     <ReplaceClassNameControl addStep={addStep} />
     <ReplaceContentControl addStep={addStep} />
-  </>
+  </div>
 );
 
 // =========================================================================
-// Component chính: ControlPanel (chỉ render các component con)
+// Component con: Nhóm các control xử lý Text
+// =========================================================================
+const TextControlPanel: React.FC<{ addStep: (step: StepInput) => void }> = ({
+  addStep,
+}) => (
+  <div className="space-y-4">
+    <TextButtons addStep={addStep} />
+    <TruncateControl addStep={addStep} />
+    <FindReplaceControl addStep={addStep} />
+  </div>
+);
+
+// =========================================================================
+// Component chính: ControlPanel
 // =========================================================================
 interface ControlPanelProps {
   inputText: string;
@@ -144,25 +86,25 @@ interface ControlPanelProps {
   handleClear: () => void;
 }
 
-const ControlPanel: React.FC<ControlPanelProps> = ({
+export const ControlPanel: React.FC<ControlPanelProps> = ({
   inputText,
   outputText,
   setInputText,
   addStep,
   handleClear,
 }) => {
-  const showToast = useToast();
+  const toast = useToast();
   const handleCopy = () => {
     navigator.clipboard.writeText(outputText);
-    showToast.success("Đã sao chép văn bản thành công!");
+    toast.success("Đã sao chép văn bản thành công!");
   };
 
   return (
     <div>
       <div className="text-xl font-bold mb-4 flex items-center">
-        <I18n value={"Điều khiển"} />
+        <I18n value="Điều khiển" />
         <Button variant="destructive" className="ml-auto" onClick={handleClear}>
-          <I18n value={"Xóa tất cả"} />
+          <I18n value="Xóa tất cả" />
         </Button>
       </div>
       <InputOutputSection
@@ -171,12 +113,22 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
         setInputText={setInputText}
         handleCopy={handleCopy}
       />
-      <TextButtons addStep={addStep} />
-      <TruncateControl addStep={addStep} />
-      <FindReplaceControl addStep={addStep} />
-      <HtmlControlPanel addStep={addStep} />
+      <Tabs defaultValue="text" className="mt-4">
+        <TabsList className="mb-4">
+          <TabsTrigger value="text">
+            <I18n value="Text" />
+          </TabsTrigger>
+          <TabsTrigger value="html">
+            <I18n value="HTML" />
+          </TabsTrigger>
+        </TabsList>
+        <TabsContent value="text">
+          <TextControlPanel addStep={addStep} />
+        </TabsContent>
+        <TabsContent value="html">
+          <HtmlControlPanel addStep={addStep} />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };
-
-export default ControlPanel;

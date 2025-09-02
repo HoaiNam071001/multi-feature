@@ -1,18 +1,24 @@
-import { replaceHtmlClassName, replaceHtmlContent } from "./htmlProcessors";
 import {
-  findReplace,
+  replaceHtmlAttribute,
+  replaceHtmlClassName,
+  replaceHtmlContent,
+  replaceHtmlStyle,
+  replaceTagName,
+} from "./htmlProcessors";
+import {
   capitalize,
-  truncateText,
-  trimText,
-  reverseText,
-  toLowercase,
-  toUppercase,
-  removeExtraSpaces,
-  swapCase,
-  sentenceCase,
-  removeDuplicateLines,
+  findReplace,
   removeBlankLines,
   removeDiacritics,
+  removeDuplicateLines,
+  removeExtraSpaces,
+  reverseText,
+  sentenceCase,
+  swapCase,
+  toLowercase,
+  toUppercase,
+  trimText,
+  truncateText,
 } from "./textProcessors";
 import { Step, StepType } from "./type";
 
@@ -54,20 +60,24 @@ export const processStep = (text: string, step: Step): string => {
     case StepType.RemoveDiacritics:
       return removeDiacritics(text);
     case StepType.ReplaceHtmlAttributes:
-      return replaceHtmlClassName(text, {
+      return replaceHtmlAttribute(text, step.attributeName || "", {
         find: step.find,
         replace: step.replace,
         tagFilter: step.tagFilter,
+        classFilter: step.classFilter,
         caseSensitive: step.caseSensitive,
         useRegex: step.useRegex,
+        match: step.match,
       });
     case StepType.ReplaceHtmlStyles:
-      return replaceHtmlClassName(text, {
+      return replaceHtmlStyle(text, {
         find: step.find,
         replace: step.replace,
         tagFilter: step.tagFilter,
+        classFilter: step.classFilter,
         caseSensitive: step.caseSensitive,
         useRegex: step.useRegex,
+        match: step.match,
       });
     case StepType.ReplaceHtmlClassName:
       return replaceHtmlClassName(text, {
@@ -76,6 +86,7 @@ export const processStep = (text: string, step: Step): string => {
         tagFilter: step.tagFilter,
         caseSensitive: step.caseSensitive,
         useRegex: step.useRegex,
+        match: step.match,
       });
     case StepType.ReplaceHtmlContent:
       return replaceHtmlContent(text, {
@@ -84,6 +95,17 @@ export const processStep = (text: string, step: Step): string => {
         tagFilter: step.tagFilter,
         caseSensitive: step.caseSensitive,
         useRegex: step.useRegex,
+        match: step.match,
+      });
+    case StepType.ReplaceTagName:
+      return replaceTagName(text, {
+        find: step.find,
+        replace: step.replace,
+        tagFilter: step.tagFilter,
+        classFilter: step.classFilter,
+        caseSensitive: step.caseSensitive,
+        useRegex: step.useRegex,
+        match: step.match,
       });
     default:
       return text;

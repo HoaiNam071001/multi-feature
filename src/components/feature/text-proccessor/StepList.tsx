@@ -2,19 +2,19 @@
 
 "use client";
 
-import React from "react";
 import { Button } from "@/components/ui/button";
-import { X, GripVertical, CaseSensitive, Regex, CaseLower } from "lucide-react";
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { Step, StepType, stepTypeNames } from "./handlers";
 import I18n from "@/components/utils/I18n";
+import { CaseLower, CaseSensitive, GripVertical, Regex, X } from "lucide-react";
+import React from "react";
+import { Step, StepType, stepTypeNames } from "./handlers";
 
-import { DndContext, closestCenter, useSensor, useSensors, PointerSensor, DragEndEvent } from '@dnd-kit/core';
-import { SortableContext, useSortable, verticalListSortingStrategy, arrayMove } from '@dnd-kit/sortable';
+import { DndContext, DragEndEvent, PointerSensor, closestCenter, useSensor, useSensors } from '@dnd-kit/core';
+import { SortableContext, arrayMove, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 
 interface StepListProps {
@@ -54,40 +54,96 @@ const StepOptions: React.FC<{ caseSensitive?: boolean; useRegex?: boolean }> = (
 // Component con cho từng item có thể kéo thả
 const SortableItem: React.FC<SortableItemProps> = ({ step, index, removeStep, stepOutputs }) => {
   const { attributes, listeners, setNodeRef, transform, transition } = useSortable({ id: step.id });
-  
+
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
   };
 
-  const getStepName = (s: Step) => {
-    switch (s.type) {
-      case StepType.Truncate:
-        return `${stepTypeNames[s.type]} (${s.length})`;
-      case StepType.FindReplace:
-        return `${stepTypeNames[s.type]}: "${s.find}" -> "${s.replace}"`;
-      case StepType.ReplaceHtmlClassName:
-        const tagFilterClassName = s.tagFilter?.length ? `(thẻ: ${s.tagFilter.join(", ")})` : "";
-        return `${stepTypeNames[s.type]}: "${s.find}" -> "${s.replace}" ${tagFilterClassName}`;
-      case StepType.ReplaceHtmlAttributes:
-        const tagFilterAttr = s.tagFilter?.length ? `(thẻ: ${s.tagFilter.join(", ")})` : "";
-        return `${stepTypeNames[s.type]} (${s.attributeName}): "${s.find}" -> "${s.replace}" ${tagFilterAttr}`;
-      case StepType.ReplaceHtmlContent:
-        const tagFilterContent = s.tagFilter?.length ? `(thẻ: ${s.tagFilter.join(", ")})` : "";
-        return `${stepTypeNames[s.type]}: "${s.find}" -> "${s.replace}" ${tagFilterContent}`;
-      default:
-        return stepTypeNames[s.type] || "Không xác định";
-    }
-  };
-
-  const truncateText = (text: string, maxLength: number) => {
+  const truncateText = (text: string | undefined | null, maxLength: number) => {
+    if (!text) return "";
     if (text.length <= maxLength) return text;
     return `${text.substring(0, maxLength)}...`;
   };
 
-  const stepName = getStepName(step);
+  const renderStepDetails = (s: Step) => {
+    const commonHtmlOptions =
+      "tagFilter" in s && ("classFilter" in s) && (s.tagFilter?.length || s.classFilter) ? (
+        <span className="text-gray-500 text-xs ml-1">
+          {s.tagFilter?.length ? `thẻ: ${s.tagFilter.join(", ")}` : ""}
+          {s.tagFilter?.length && s.classFilter ? ", " : ""}
+          {s.classFilter ? `class: ${s.classFilter}` : ""}
+        </span>
+      ) : null;
+
+    switch (s.type) {
+      case StepType.Truncate:
+        return `${stepTypeNames[s.type]} (${s.length} ký tự)`;
+      case StepType.FindReplace:
+        return (
+          <>
+            {stepTypeNames[s.type]}: {"\""}<span className="font-semibold">{truncateText(s.find, 15)}</span>{"\""}
+            {" -> "}
+            {"\""}<span className="font-semibold">{truncateText(s.replace, 15)}</span>{"\""}
+          </>
+        );
+      case StepType.ReplaceHtmlClassName:
+      case StepType.ReplaceHtmlContent:
+      case StepType.ReplaceHtmlStyles:
+        return (
+          <>
+            {stepTypeNames[s.type]}:{" "}
+            {"\""}<span className="font-semibold">{truncateText(s.find, 15)}</span>{"\""}
+            {" -> "}
+            {"\""}<span className="font-semibold">{truncateText(s.replace, 15)}</span>{"\""}
+            {commonHtmlOptions}
+          </>
+        );
+      case StepType.ReplaceTagName:
+        return (
+          <>
+            {stepTypeNames[s.type]}:{" "}
+            <span className="font-semibold">{truncateText(s.find, 15)} - {truncateText(s.replace, 15)}</span>
+            {commonHtmlOptions}
+          </>
+        );
+      case StepType.ReplaceHtmlAttributes:
+        return (
+          <>
+            {stepTypeNames[s.type]} ({s.attributeName}):{" "}
+            {"\""}<span className="font-semibold">{truncateText(s.find, 15)}</span>{"\""}
+            {" -> "}
+            {"\""}<span className="font-semibold">{truncateText(s.replace, 15)}</span>{"\""}
+            {commonHtmlOptions}
+          </>
+        );
+      case StepType.Uppercase:
+      case StepType.Lowercase:
+      case StepType.Capitalize:
+      case StepType.Reverse:
+      case StepType.Trim:
+      case StepType.RemoveBlankLines:
+      case StepType.RemoveDuplicateLines:
+      case StepType.SentenceCase:
+      case StepType.SwapCase:
+      case StepType.RemoveExtraSpaces:
+      case StepType.RemoveDiacritics:
+        return stepTypeNames[s.type];
+      default:
+        return "Không xác định";
+    }
+  };
+
   const output = stepOutputs[index];
   const displayedOutput = truncateText(output, 20);
+
+  const showOptions =
+    step.type === StepType.FindReplace ||
+    step.type === StepType.ReplaceHtmlClassName ||
+    step.type === StepType.ReplaceHtmlAttributes ||
+    step.type === StepType.ReplaceHtmlContent ||
+    step.type === StepType.ReplaceHtmlStyles ||
+    step.type === StepType.ReplaceTagName;
 
   return (
     <li
@@ -97,13 +153,8 @@ const SortableItem: React.FC<SortableItemProps> = ({ step, index, removeStep, st
     >
       <div className="flex-1 min-w-0">
         <div className="font-medium flex items-center truncate">
-          <div className="truncate">{stepName}</div>
-          {(step.type === StepType.FindReplace ||
-            step.type === StepType.ReplaceHtmlClassName ||
-            step.type === StepType.ReplaceHtmlAttributes ||
-            step.type === StepType.ReplaceHtmlContent) && (
-            <StepOptions caseSensitive={step.caseSensitive} useRegex={step.useRegex} />
-          )}
+          <div className="truncate">{renderStepDetails(step)}</div>
+          {showOptions && <StepOptions caseSensitive={step.caseSensitive} useRegex={step.useRegex} />}
         </div>
         <Tooltip>
           <TooltipTrigger asChild>
@@ -126,11 +177,7 @@ const SortableItem: React.FC<SortableItemProps> = ({ step, index, removeStep, st
         >
           <GripVertical className="w-4 h-4" />
         </Button>
-        <Button
-          size="sm"
-          variant="outline"
-          onClick={() => removeStep(index)}
-        >
+        <Button size="sm" variant="outline" onClick={() => removeStep(index)}>
           <X className="w-4 h-4" />
         </Button>
       </div>

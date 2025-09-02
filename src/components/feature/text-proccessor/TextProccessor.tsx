@@ -2,13 +2,12 @@
 
 "use client";
 
-import React, { useState, useMemo } from "react";
-import { TooltipProvider } from "@/components/ui/tooltip";
 import StepList from "@/components/feature/text-proccessor/StepList";
-import ControlPanel from "@/components/feature/text-proccessor/ControlPanel";
+import React, { useMemo, useState } from "react";
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { processStep, Step, StepInput } from "./handlers";
+import { ControlPanel } from "./ControlPanel";
 
 const TextProcessor: React.FC = () => {
   const [inputText, setInputText] = useState<string>("");
