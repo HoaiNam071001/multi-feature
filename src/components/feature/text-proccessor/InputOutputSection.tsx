@@ -23,7 +23,7 @@ export const InputOutputSection: React.FC<{
         id="inputText"
         value={inputText}
         onChange={(e) => setInputText(e.target.value)}
-        className="w-full"
+        className="w-full max-h-[250px]"
         rows={4}
         placeholder="Nhập văn bản của bạn tại đây..."
       />
@@ -50,7 +50,7 @@ export const InputOutputSection: React.FC<{
           id="outputText"
           value={outputText}
           readOnly
-          className="w-full bg-gray-100 pr-10"
+          className="w-full bg-gray-100 pr-10 max-h-[200px]"
           rows={4}
         />
         <Button

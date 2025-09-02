@@ -2,9 +2,14 @@
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import I18n from "@/components/utils/I18n";
-import { CaseSensitive, CheckCircle, Dumbbell, Regex } from "lucide-react";
+import { match } from "assert";
+import { Dumbbell, Regex } from "lucide-react";
 import { useState } from "react";
 import { StepInput, StepType } from "../handlers";
 
@@ -14,17 +19,8 @@ export const ReplaceTagNameControl: React.FC<{
 }> = ({ addStep }) => {
   const [find, setFind] = useState<string>("");
   const [replace, setReplace] = useState<string>("");
-  const [tagFilter, setTagFilter] = useState<string>("");
   const [classFilter, setClassFilter] = useState<string>("");
-  const [caseSensitive, setCaseSensitive] = useState<boolean>(false);
   const [useRegex, setUseRegex] = useState<boolean>(false);
-  const [match, setMatch] = useState<boolean>(false);
-
-  const parseCommaSeparated = (input: string) =>
-    input
-      .split(",")
-      .map((s) => s.trim())
-      .filter((s) => s);
 
   return (
     <Popover>
@@ -52,45 +48,19 @@ export const ReplaceTagNameControl: React.FC<{
           </div>
           <div className="flex items-center gap-2">
             <Input
-              value={tagFilter}
-              onChange={(e) => setTagFilter(e.target.value)}
-              placeholder="Thẻ (ex: p,span)"
-              className="flex-1"
-            />
-            <Input
               value={classFilter}
               onChange={(e) => setClassFilter(e.target.value)}
-              placeholder="Class (ex: m-1,p-1)"
+              placeholder="Class (ex: m-1 p-1)"
               className="flex-1"
             />
-          </div>
-          <div className="flex gap-2">
             <Button
               size="sm"
               variant={useRegex ? "default" : "outline"}
               onClick={() => setUseRegex(!useRegex)}
-              className="flex-1 justify-start"
+              className="justify-start"
             >
               <Regex className="w-4 h-4 mr-2" />
               <I18n value="Regex" />
-            </Button>
-            <Button
-              size="sm"
-              variant={caseSensitive ? "default" : "outline"}
-              onClick={() => setCaseSensitive(!caseSensitive)}
-              className="flex-1 justify-start"
-            >
-              <CaseSensitive className="w-4 h-4 mr-2" />
-              <I18n value="Phân biệt hoa thường" />
-            </Button>
-            <Button
-              size="sm"
-              variant={match ? "default" : "outline"}
-              onClick={() => setMatch(!match)}
-              className="flex-1 justify-start"
-            >
-              <CheckCircle className="w-4 h-4 mr-2" />
-              <I18n value="Khớp chính xác" />
             </Button>
           </div>
           <div className="flex gap-2">
@@ -102,9 +72,7 @@ export const ReplaceTagNameControl: React.FC<{
                   type: StepType.ReplaceTagName,
                   find: find,
                   replace: "",
-                  tagFilter: parseCommaSeparated(tagFilter),
                   classFilter: classFilter,
-                  caseSensitive,
                   useRegex,
                   match,
                 } as StepInput)
@@ -119,9 +87,7 @@ export const ReplaceTagNameControl: React.FC<{
                   type: StepType.ReplaceTagName,
                   find: find,
                   replace: replace,
-                  tagFilter: parseCommaSeparated(tagFilter),
                   classFilter: classFilter,
-                  caseSensitive,
                   useRegex,
                   match,
                 } as StepInput)

@@ -28,55 +28,44 @@ export function replaceTagName(input: string, options: HtmlReplaceOptions): stri
     find,
     replace,
     classFilter,
-    tagFilter,
     useRegex = false,
-    caseSensitive = false,
-    match = false,
   } = options;
 
-  const regexFlags = caseSensitive ? "g" : "gi";
-  let pattern: RegExp;
+  // Xây dựng regex cho tên thẻ, chỉ áp dụng useRegex cho find
+  const escapedFind = useRegex ? `(${find})` : `(${escapeRegex(find)})`;
+  const tagPattern = new RegExp(`<${escapedFind}([^>]*)>([\\s\\S]*?)<\\/\\1>`, "gi");
 
-  if (useRegex) {
-    pattern = new RegExp(find, regexFlags);
-  } else {
-    const escapedFind = escapeRegex(find);
-    pattern = match
-      ? new RegExp(`^${escapedFind}$`, regexFlags)
-      : new RegExp(`\\b${escapedFind.split(/\s+/).join("\\b|\\b")}\\b`, regexFlags);
-  }
-
-  return input.replace(
-    /<([a-z0-9]+)([^>]*)>([\s\S]*?)<\/\1>/gi,
+  return input.replaceAll(
+    tagPattern,
     (fullMatch, tagName: string, attrs: string, content: string) => {
-      if (tagFilter?.length && !tagFilter.includes(tagName.toLowerCase())) {
-        return fullMatch;
-      }
-
+      // Logic lọc class
       if (classFilter) {
-        const classMatch = attrs.match(/\s*class\s*=\s*(['"])(.*?)\1/i);
+        const classMatch = attrs.match(/\s+class\s*=\s*(['"])(.*?)\1/i);
         if (classMatch) {
           const classValue = classMatch[2];
-          const classes = classValue.split(/\s+/).filter(Boolean);
-          const findClasses = useRegex ? [find] : find.split(/\s+/).filter(Boolean);
+          const filterClasses = classFilter.toLowerCase().split(/\s+/).filter(Boolean);
+          const classes = classValue.toLowerCase().split(/\s+/).filter(Boolean);
+          
+          const isClassMatch = filterClasses.every((fc) => classes.includes(fc));
 
-          let isMatch: boolean;
-          if (useRegex) {
-            isMatch = pattern.test(classValue);
-          } else if (match) {
-            isMatch = findClasses.length === classes.length &&
-              findClasses.every((fc) => classes.includes(fc));
-          } else {
-            isMatch = findClasses.every((fc) => classes.includes(fc));
+          if (!isClassMatch) {
+            return fullMatch;
           }
-
-          if (!isMatch) return fullMatch;
         } else {
           return fullMatch;
         }
       }
 
-      return replace ? `<${replace}${attrs}>${content}</${replace}>` : content;
+      // Xử lý thay thế
+      if (replace) {
+        // Thay thế tên thẻ, giữ nguyên thuộc tính và nội dung
+        const newOpenTag = `<${replace}${attrs}>`;
+        const newCloseTag = `</${replace}>`;
+        return `${newOpenTag}${content}${newCloseTag}`;
+      } else {
+        // Xóa thẻ, chỉ giữ lại nội dung
+        return '';
+      }
     }
   );
 }
