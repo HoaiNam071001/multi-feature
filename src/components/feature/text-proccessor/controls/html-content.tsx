@@ -2,15 +2,26 @@
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import I18n from "@/components/utils/I18n";
-import { CaseLower, CaseSensitive, CheckCircle, MemoryStick, Regex } from "lucide-react";
+import { Label } from "@radix-ui/react-label";
+import {
+  CaseLower,
+  CaseSensitive,
+  CheckCircle,
+  MemoryStick,
+  Regex,
+} from "lucide-react";
 import { useState } from "react";
-import { StepInput, StepType } from "../handlers";
+import { Step, StepType } from "../handlers";
 
 // Component: Thay thế Nội dung
 export const ReplaceContentControl: React.FC<{
-  addStep: (step: StepInput) => void;
+  addStep: (step: Step) => void;
 }> = ({ addStep }) => {
   const [find, setFind] = useState<string>("");
   const [replace, setReplace] = useState<string>("");
@@ -22,7 +33,7 @@ export const ReplaceContentControl: React.FC<{
 
   const parseCommaSeparated = (input: string) =>
     input
-      .split(",")
+      .split(" ")
       .map((s) => s.trim())
       .filter((s) => s);
 
@@ -37,32 +48,52 @@ export const ReplaceContentControl: React.FC<{
       <PopoverContent className="w-full">
         <div className="space-y-2">
           <div className="flex items-center gap-2">
-            <Input
-              value={find}
-              onChange={(e) => setFind(e.target.value)}
-              placeholder="Nội dung tìm kiếm"
-              className="flex-1"
-            />
-            <Input
-              value={replace}
-              onChange={(e) => setReplace(e.target.value)}
-              placeholder="Thay thế"
-              className="flex-1"
-            />
+            <div className="flex-1">
+              <Label className="mb-2">
+                <I18n value="Tìm kiếm" />
+              </Label>
+              <Input
+                value={find}
+                onChange={(e) => setFind(e.target.value)}
+                placeholder="Nội dung tìm kiếm"
+                className="w-full"
+              />
+            </div>
+            <div className="flex-1">
+              <Label className="mb-2">
+                <I18n value="Thay thế" />
+              </Label>
+              <Input
+                value={replace}
+                onChange={(e) => setReplace(e.target.value)}
+                placeholder="Thay thế"
+                className="w-full"
+              />
+            </div>
           </div>
           <div className="flex items-center gap-2">
-            <Input
-              value={tagFilter}
-              onChange={(e) => setTagFilter(e.target.value)}
-              placeholder="Thẻ (ex: p,span)"
-              className="flex-1"
-            />
-            <Input
-              value={classFilter}
-              onChange={(e) => setClassFilter(e.target.value)}
-              placeholder="Class (ex: m-1,p-1)"
-              className="flex-1"
-            />
+            <div className="flex-1">
+              <Label className="mb-2">
+                <I18n value="Lọc Thẻ" />
+              </Label>
+              <Input
+                value={tagFilter}
+                onChange={(e) => setTagFilter(e.target.value)}
+                placeholder="Thẻ (ex: h1 h2)"
+                className="w-full"
+              />
+            </div>
+            <div className="flex-1">
+              <Label className="mb-2">
+                <I18n value="Lọc class" />
+              </Label>
+              <Input
+                value={classFilter}
+                onChange={(e) => setClassFilter(e.target.value)}
+                placeholder="Class (ex: class1 class2)"
+                className="w-full"
+              />
+            </div>
           </div>
           <div className="flex gap-2">
             <Button
@@ -101,18 +132,15 @@ export const ReplaceContentControl: React.FC<{
             <Button
               variant="destructive"
               className="flex-1"
-              onClick={() =>
-                addStep({
-                  type: StepType.ReplaceHtmlContent,
-                  find: find,
-                  replace: "",
-                  tagFilter: parseCommaSeparated(tagFilter),
-                  classFilter: classFilter,
-                  caseSensitive,
-                  useRegex,
-                  match,
-                } as StepInput)
-              }
+              onClick={() => {
+                setFind("");
+                setReplace("");
+                setTagFilter("");
+                setClassFilter("");
+                setCaseSensitive(false);
+                setUseRegex(false);
+                setMatch(false);
+              }}
             >
               <I18n value="Xóa" />
             </Button>
@@ -121,14 +149,16 @@ export const ReplaceContentControl: React.FC<{
               onClick={() =>
                 addStep({
                   type: StepType.ReplaceHtmlContent,
-                  find: find,
-                  replace: replace,
-                  tagFilter: parseCommaSeparated(tagFilter),
-                  classFilter: classFilter,
-                  caseSensitive,
-                  useRegex,
-                  match,
-                } as StepInput)
+                  options: {
+                    find: find,
+                    replace: replace,
+                    tagFilter: parseCommaSeparated(tagFilter),
+                    classFilter: classFilter,
+                    caseSensitive,
+                    useRegex,
+                    match,
+                  },
+                } as Step)
               }
             >
               <I18n value="Thay thế" />

@@ -2,9 +2,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import I18n from "@/components/utils/I18n";
 import { useState } from "react";
-import { StepInput, StepType, stepTypeNames } from "../handlers";
+import { Step, StepType, stepTypeNames } from "../handlers";
 
-export const TruncateControl: React.FC<{ addStep: (step: StepInput) => void }> = ({
+export const TruncateControl: React.FC<{ addStep: (step: Step) => void }> = ({
     addStep,
   }) => {
     const [truncateLength, setTruncateLength] = useState<string>("");
@@ -22,8 +22,10 @@ export const TruncateControl: React.FC<{ addStep: (step: StepInput) => void }> =
           onClick={() =>
             addStep({
               type: StepType.Truncate,
-              length: parseInt(truncateLength, 10),
-            } as StepInput)
+              options: {
+                length: parseInt(truncateLength, 10),
+              }
+            } as Step)
           }
         >
           <I18n value={stepTypeNames[StepType.Truncate]} />

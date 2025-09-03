@@ -3,11 +3,11 @@ import { Input } from "@/components/ui/input";
 import I18n from "@/components/utils/I18n";
 import { CaseSensitive, Regex } from "lucide-react";
 import { useState } from "react";
-import { StepInput, StepType, stepTypeNames } from "../handlers";
+import { Step, StepType, stepTypeNames } from "../handlers";
 
-export const FindReplaceControl: React.FC<{ addStep: (step: StepInput) => void }> = ({
-  addStep,
-}) => {
+export const FindReplaceControl: React.FC<{
+  addStep: (step: Step) => void;
+}> = ({ addStep }) => {
   const [findText, setFindText] = useState<string>("");
   const [replaceText, setReplaceText] = useState<string>("");
   const [caseSensitive, setCaseSensitive] = useState<boolean>(false);
@@ -47,11 +47,13 @@ export const FindReplaceControl: React.FC<{ addStep: (step: StepInput) => void }
         onClick={() =>
           addStep({
             type: StepType.FindReplace,
-            find: findText,
-            replace: replaceText,
-            caseSensitive,
-            useRegex,
-          } as StepInput)
+            options: {
+              find: findText,
+              replace: replaceText,
+              caseSensitive,
+              useRegex,
+            },
+          } as Step)
         }
       >
         <I18n value={stepTypeNames[StepType.FindReplace]} />

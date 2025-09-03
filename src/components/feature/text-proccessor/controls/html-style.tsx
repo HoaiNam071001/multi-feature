@@ -8,18 +8,13 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import I18n from "@/components/utils/I18n";
-import {
-  CaseSensitive,
-  CheckCircle,
-  Regex,
-  Snowflake
-} from "lucide-react";
+import { CaseSensitive, CheckCircle, Regex, Snowflake } from "lucide-react";
 import { useState } from "react";
-import { StepInput, StepType } from "../handlers";
+import { Step, StepType } from "../handlers";
 
 // Component: Thay thế Styles
 export const ReplaceStylesControl: React.FC<{
-  addStep: (step: StepInput) => void;
+  addStep: (step: Step) => void;
 }> = ({ addStep }) => {
   const [find, setFind] = useState<string>("");
   const [replace, setReplace] = useState<string>("");
@@ -106,18 +101,15 @@ export const ReplaceStylesControl: React.FC<{
             <Button
               variant="destructive"
               className="flex-1"
-              onClick={() =>
-                addStep({
-                  type: StepType.ReplaceHtmlStyles,
-                  find: find,
-                  replace: "",
-                  tagFilter: parseCommaSeparated(tagFilter),
-                  classFilter: classFilter,
-                  caseSensitive,
-                  useRegex,
-                  match,
-                } as StepInput)
-              }
+              onClick={() => {
+                setFind("");
+                setReplace("");
+                setTagFilter("");
+                setClassFilter("");
+                setCaseSensitive(false);
+                setUseRegex(false);
+                setMatch(false);
+              }}
             >
               <I18n value="Xóa" />
             </Button>
@@ -126,14 +118,16 @@ export const ReplaceStylesControl: React.FC<{
               onClick={() =>
                 addStep({
                   type: StepType.ReplaceHtmlStyles,
-                  find: find,
-                  replace: replace,
-                  tagFilter: parseCommaSeparated(tagFilter),
-                  classFilter: classFilter,
-                  caseSensitive,
-                  useRegex,
-                  match,
-                } as StepInput)
+                  options: {
+                    find: find,
+                    replace: replace,
+                    tagFilter: parseCommaSeparated(tagFilter),
+                    classFilter: classFilter,
+                    caseSensitive,
+                    useRegex,
+                    match,
+                  },
+                } as Step)
               }
             >
               <I18n value="Thay thế" />

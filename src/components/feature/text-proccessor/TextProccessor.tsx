@@ -6,22 +6,23 @@ import StepList from "@/components/feature/text-proccessor/StepList";
 import React, { useMemo, useState } from "react";
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import { processStep, Step, StepInput } from "./handlers";
+import { v4 as uuidv4 } from 'uuid';
 import { ControlPanel } from "./ControlPanel";
+import { processStep, Step, StepItem } from "./handlers";
 
 const TextProcessor: React.FC = () => {
   const [inputText, setInputText] = useState<string>("");
-  const [steps, setSteps] = useState<Step[]>([]);
+  const [steps, setSteps] = useState<StepItem[]>([]);
 
-  const addStep = (step: StepInput) => {
-    const newStep: Step = { ...step, id: `step-${Date.now()}-${Math.random()}` } as Step;
+  const addStep = (step: Step) => {
+    const newStep: StepItem = { ...step, id: uuidv4() };
     setSteps((prev) => [...prev, newStep]);
   };
 
   const removeStep = (index: number) =>
     setSteps((prev) => prev.filter((_, i) => i !== index));
 
-  const reorderSteps = (newSteps: Step[]) => {
+  const reorderSteps = (newSteps: StepItem[]) => {
     setSteps(newSteps);
   };
 

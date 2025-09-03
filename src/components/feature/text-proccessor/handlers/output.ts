@@ -38,14 +38,14 @@ export const processStep = (text: string, step: Step): string => {
     case StepType.Trim:
       return trimText(text);
     case StepType.Truncate:
-      return truncateText(text, step.length);
+      return truncateText(text, step.options.length);
     case StepType.FindReplace:
       return findReplace(
         text,
-        step.find,
-        step.replace,
-        step.caseSensitive,
-        step.useRegex
+        step.options.find,
+        step.options.replace,
+        step.options.caseSensitive,
+        step.options.useRegex
       );
     case StepType.RemoveBlankLines:
       return removeBlankLines(text);
@@ -60,52 +60,52 @@ export const processStep = (text: string, step: Step): string => {
     case StepType.RemoveDiacritics:
       return removeDiacritics(text);
     case StepType.ReplaceHtmlAttributes:
-      return replaceHtmlAttribute(text, step.attributeName || "", {
-        find: step.find,
-        replace: step.replace,
-        tagFilter: step.tagFilter,
-        classFilter: step.classFilter,
-        caseSensitive: step.caseSensitive,
-        useRegex: step.useRegex,
-        match: step.match,
+      return replaceHtmlAttribute(text, step.options.attributeName || "", {
+        find: step.options.find,
+        replace: step.options.replace,
+        tagFilter: step.options.tagFilter,
+        classFilter: step.options.classFilter,
+        caseSensitive: step.options.caseSensitive,
+        useRegex: step.options.useRegex,
+        match: step.options.match,
       });
     case StepType.ReplaceHtmlStyles:
       return replaceHtmlStyle(text, {
-        find: step.find,
-        replace: step.replace,
-        tagFilter: step.tagFilter,
-        classFilter: step.classFilter,
-        caseSensitive: step.caseSensitive,
-        useRegex: step.useRegex,
-        match: step.match,
+        find: step.options.find,
+        replace: step.options.replace,
+        tagFilter: step.options.tagFilter,
+        classFilter: step.options.classFilter,
+        caseSensitive: step.options.caseSensitive,
+        useRegex: step.options.useRegex,
+        match: step.options.match,
       });
     case StepType.ReplaceHtmlClassName:
       return replaceHtmlClassName(text, {
-        find: step.find,
-        replace: step.replace,
-        tagFilter: step.tagFilter,
-        caseSensitive: step.caseSensitive,
-        useRegex: step.useRegex,
-        match: step.match,
+        find: step.options.find,
+        replace: step.options.replace,
+        tagFilter: step.options.tagFilter,
+        caseSensitive: step.options.caseSensitive,
+        useRegex: step.options.useRegex,
+        match: step.options.match,
       });
     case StepType.ReplaceHtmlContent:
       return replaceHtmlContent(text, {
-        find: step.find,
-        replace: step.replace,
-        tagFilter: step.tagFilter,
-        caseSensitive: step.caseSensitive,
-        useRegex: step.useRegex,
-        match: step.match,
+        find: step.options.find,
+        replace: step.options.replace,
+        tagFilter: step.options.tagFilter,
+        caseSensitive: step.options.caseSensitive,
+        useRegex: step.options.useRegex,
+        match: step.options.match,
       });
     case StepType.ReplaceTagName:
       return replaceTagName(text, {
-        find: step.find,
-        replace: step.replace,
-        tagFilter: step.tagFilter,
-        classFilter: step.classFilter,
-        caseSensitive: step.caseSensitive,
-        useRegex: step.useRegex,
-        match: step.match,
+        find: step.options.find,
+        replace: step.options.replace,
+        tagFilter: step.options.tagFilter,
+        classFilter: step.options.classFilter,
+        caseSensitive: step.options.caseSensitive,
+        useRegex: step.options.useRegex,
+        match: step.options.match,
       });
     default:
       return text;

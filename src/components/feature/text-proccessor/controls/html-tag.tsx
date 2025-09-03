@@ -2,20 +2,20 @@
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
 import I18n from "@/components/utils/I18n";
-import { match } from "assert";
 import { Dumbbell, Regex } from "lucide-react";
 import { useState } from "react";
-import { StepInput, StepType } from "../handlers";
+import { Step, StepType } from "../handlers";
 
 // Component: Thay thế Tên Thẻ
 export const ReplaceTagNameControl: React.FC<{
-  addStep: (step: StepInput) => void;
+  addStep: (step: Step) => void;
 }> = ({ addStep }) => {
   const [find, setFind] = useState<string>("");
   const [replace, setReplace] = useState<string>("");
@@ -33,50 +33,63 @@ export const ReplaceTagNameControl: React.FC<{
       <PopoverContent className="w-full">
         <div className="space-y-2">
           <div className="flex items-center gap-2">
-            <Input
-              value={find}
-              onChange={(e) => setFind(e.target.value)}
-              placeholder="Tên thẻ tìm kiếm"
-              className="flex-1"
-            />
-            <Input
-              value={replace}
-              onChange={(e) => setReplace(e.target.value)}
-              placeholder="Thay thế"
-              className="flex-1"
-            />
+            <div className="flex-1">
+              <Label className="mb-2">
+                <I18n value="Tìm kiếm" />
+              </Label>
+              <Input
+                value={find}
+                onChange={(e) => setFind(e.target.value)}
+                placeholder="Tên thẻ tìm kiếm"
+                className="w-full"
+              />
+            </div>
+            <div className="flex-1">
+              <Label className="mb-2">
+                <I18n value="Thay thế" />
+              </Label>
+              <Input
+                value={replace}
+                onChange={(e) => setReplace(e.target.value)}
+                placeholder="Tìm kiếm"
+                className="w-full"
+              />
+            </div>
           </div>
-          <div className="flex items-center gap-2">
-            <Input
-              value={classFilter}
-              onChange={(e) => setClassFilter(e.target.value)}
-              placeholder="Class (ex: m-1 p-1)"
-              className="flex-1"
-            />
-            <Button
-              size="sm"
-              variant={useRegex ? "default" : "outline"}
-              onClick={() => setUseRegex(!useRegex)}
-              className="justify-start"
-            >
-              <Regex className="w-4 h-4 mr-2" />
-              <I18n value="Regex" />
-            </Button>
+          <div className="flex gap-2">
+            <div className="flex-1">
+              <Label className="mb-2">
+                <I18n value="Class Name" />
+              </Label>
+              <Input
+                value={classFilter}
+                onChange={(e) => setClassFilter(e.target.value)}
+                placeholder="Class"
+                className="w-full"
+              />
+            </div>
+            <div className="flex items-end">
+              <Button
+                size="sm"
+                variant={useRegex ? "default" : "outline"}
+                onClick={() => setUseRegex(!useRegex)}
+                className="justify-start"
+              >
+                <Regex className="w-4 h-4 mr-2" />
+                <I18n value="Regex" />
+              </Button>
+            </div>
           </div>
           <div className="flex gap-2">
             <Button
               variant="destructive"
               className="flex-1"
-              onClick={() =>
-                addStep({
-                  type: StepType.ReplaceTagName,
-                  find: find,
-                  replace: "",
-                  classFilter: classFilter,
-                  useRegex,
-                  match,
-                } as StepInput)
-              }
+              onClick={() => {
+                setFind("");
+                setReplace("");
+                setClassFilter("");
+                setUseRegex(false);
+              }}
             >
               <I18n value="Xóa" />
             </Button>
@@ -85,12 +98,13 @@ export const ReplaceTagNameControl: React.FC<{
               onClick={() =>
                 addStep({
                   type: StepType.ReplaceTagName,
-                  find: find,
-                  replace: replace,
-                  classFilter: classFilter,
-                  useRegex,
-                  match,
-                } as StepInput)
+                  options: {
+                    find: find,
+                    replace: replace,
+                    classFilter: classFilter,
+                    useRegex,
+                  },
+                } as Step)
               }
             >
               <I18n value="Thay thế" />

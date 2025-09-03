@@ -8,30 +8,25 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import I18n from "@/components/utils/I18n";
-import {
-  CaseSensitive,
-  CheckCircle,
-  Fence,
-  Regex
-} from "lucide-react";
+import { Label } from "@radix-ui/react-label";
+import { CaseSensitive, CheckCircle, Fence, Regex } from "lucide-react";
 import { useState } from "react";
-import { StepInput, StepType } from "../handlers";
+import { Step, StepType } from "../handlers";
 
 // Component: Thay thế Class
 export const ReplaceClassNameControl: React.FC<{
-  addStep: (step: StepInput) => void;
+  addStep: (step: Step) => void;
 }> = ({ addStep }) => {
   const [find, setFind] = useState<string>("");
   const [replace, setReplace] = useState<string>("");
   const [tagFilter, setTagFilter] = useState<string>("");
-  const [classFilter, setClassFilter] = useState<string>("");
   const [caseSensitive, setCaseSensitive] = useState<boolean>(false);
   const [useRegex, setUseRegex] = useState<boolean>(false);
   const [match, setMatch] = useState<boolean>(false);
 
   const parseCommaSeparated = (input: string) =>
     input
-      .split(",")
+      .split(" ")
       .map((s) => s.trim())
       .filter((s) => s);
 
@@ -46,32 +41,41 @@ export const ReplaceClassNameControl: React.FC<{
       <PopoverContent className="w-full">
         <div className="space-y-2">
           <div className="flex items-center gap-2">
-            <Input
-              value={find}
-              onChange={(e) => setFind(e.target.value)}
-              placeholder="ClassName tìm kiếm"
-              className="flex-1"
-            />
-            <Input
-              value={replace}
-              onChange={(e) => setReplace(e.target.value)}
-              placeholder="Thay thế"
-              className="flex-1"
-            />
+            <div className="flex-1">
+              <Label className="mb-2">
+                <I18n value="Class tìm kiếm" />
+              </Label>
+              <Input
+                value={find}
+                onChange={(e) => setFind(e.target.value)}
+                placeholder="Class tìm kiếm"
+                className="w-full"
+              />
+            </div>
+            <div className="flex-1">
+              <Label className="mb-2">
+                <I18n value="Thay thế" />
+              </Label>
+              <Input
+                value={replace}
+                onChange={(e) => setReplace(e.target.value)}
+                placeholder="Thay thế (ex: m-1 p-1)"
+                className="flex-1"
+              />
+            </div>
           </div>
           <div className="flex items-center gap-2">
-            <Input
-              value={tagFilter}
-              onChange={(e) => setTagFilter(e.target.value)}
-              placeholder="Thẻ (ex: p,span)"
-              className="flex-1"
-            />
-            <Input
-              value={classFilter}
-              onChange={(e) => setClassFilter(e.target.value)}
-              placeholder="Class (ex: m-1,p-1)"
-              className="flex-1"
-            />
+            <div className="flex-1">
+              <Label className="mb-2">
+                <I18n value="Lọc Thẻ" />
+              </Label>
+              <Input
+                value={tagFilter}
+                onChange={(e) => setTagFilter(e.target.value)}
+                placeholder="Thẻ (ex: h1 h2 h3)"
+                className="w-full"
+              />
+            </div>
           </div>
           <div className="flex gap-2">
             <Button
@@ -106,18 +110,14 @@ export const ReplaceClassNameControl: React.FC<{
             <Button
               variant="destructive"
               className="flex-1"
-              onClick={() =>
-                addStep({
-                  type: StepType.ReplaceHtmlClassName,
-                  find: find,
-                  replace: "",
-                  tagFilter: parseCommaSeparated(tagFilter),
-                  classFilter: classFilter,
-                  caseSensitive,
-                  useRegex,
-                  match,
-                } as StepInput)
-              }
+              onClick={() => {
+                setFind("");
+                setReplace("");
+                setTagFilter("");
+                setCaseSensitive(false);
+                setUseRegex(false);
+                setMatch(false);
+              }}
             >
               <I18n value="Xóa" />
             </Button>
@@ -126,14 +126,15 @@ export const ReplaceClassNameControl: React.FC<{
               onClick={() =>
                 addStep({
                   type: StepType.ReplaceHtmlClassName,
-                  find: find,
-                  replace: replace,
-                  tagFilter: parseCommaSeparated(tagFilter),
-                  classFilter: classFilter,
-                  caseSensitive,
-                  useRegex,
-                  match,
-                } as StepInput)
+                  options: {
+                    find: find,
+                    replace: replace,
+                    tagFilter: parseCommaSeparated(tagFilter),
+                    caseSensitive,
+                    useRegex,
+                    match,
+                  },
+                } as Step)
               }
             >
               <I18n value="Thay thế" />

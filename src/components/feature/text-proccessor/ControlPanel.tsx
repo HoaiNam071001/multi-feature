@@ -8,17 +8,16 @@ import React from "react";
 import { ReplaceAttributesControl } from "./controls/html-attribute";
 import { ReplaceClassNameControl } from "./controls/html-class";
 import { ReplaceContentControl } from "./controls/html-content";
-import { ReplaceStylesControl } from "./controls/html-style";
 import { ReplaceTagNameControl } from "./controls/html-tag";
 import { FindReplaceControl } from "./controls/replace";
 import { TruncateControl } from "./controls/truncate";
-import { StepInput, StepType, stepTypeNames } from "./handlers";
+import { Step, StepType, stepTypeNames } from "./handlers";
 import { InputOutputSection } from "./InputOutputSection";
 
 // =========================================================================
 // Component con: Nhóm các nút xử lý văn bản cơ bản
 // =========================================================================
-const TextButtons: React.FC<{ addStep: (step: StepInput) => void }> = ({
+const TextButtons: React.FC<{ addStep: (step: Step) => void }> = ({
   addStep,
 }) => (
   <div className="grid grid-cols-2 gap-2 mb-4">
@@ -34,10 +33,10 @@ const TextButtons: React.FC<{ addStep: (step: StepInput) => void }> = ({
       StepType.SwapCase,
       StepType.RemoveExtraSpaces,
       StepType.RemoveDiacritics,
-    ].map((type) => (
+    ].map((type: StepType) => (
       <Button
         key={type}
-        onClick={() => addStep({ type } as StepInput)}
+        onClick={() => addStep({ type } as Step)}
         variant="outline"
         
       >
@@ -50,12 +49,12 @@ const TextButtons: React.FC<{ addStep: (step: StepInput) => void }> = ({
 // =========================================================================
 // Component con: Nhóm các control xử lý HTML
 // =========================================================================
-const HtmlControlPanel: React.FC<{ addStep: (step: StepInput) => void }> = ({
+const HtmlControlPanel: React.FC<{ addStep: (step: Step) => void }> = ({
   addStep,
 }) => (
   <div className="flex flex-wrap gap-3">
     <ReplaceTagNameControl addStep={addStep} />
-    <ReplaceStylesControl addStep={addStep} />
+    {/* <ReplaceStylesControl addStep={addStep} /> */}
     <ReplaceAttributesControl addStep={addStep} />
     <ReplaceClassNameControl addStep={addStep} />
     <ReplaceContentControl addStep={addStep} />
@@ -65,7 +64,7 @@ const HtmlControlPanel: React.FC<{ addStep: (step: StepInput) => void }> = ({
 // =========================================================================
 // Component con: Nhóm các control xử lý Text
 // =========================================================================
-const TextControlPanel: React.FC<{ addStep: (step: StepInput) => void }> = ({
+const TextControlPanel: React.FC<{ addStep: (step: Step) => void }> = ({
   addStep,
 }) => (
   <div className="space-y-4">
@@ -82,7 +81,7 @@ interface ControlPanelProps {
   inputText: string;
   outputText: string;
   setInputText: (text: string) => void;
-  addStep: (step: StepInput) => void;
+  addStep: (step: Step) => void;
   handleClear: () => void;
 }
 

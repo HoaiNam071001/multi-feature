@@ -31,23 +31,26 @@ export function replaceTagName(input: string, options: HtmlReplaceOptions): stri
     useRegex = false,
   } = options;
 
-  // Xây dựng regex cho tên thẻ, chỉ áp dụng useRegex cho find
+  // Build a regex for the tag name, applying useRegex to 'find'
   const escapedFind = useRegex ? `(${find})` : `(${escapeRegex(find)})`;
-  const tagPattern = new RegExp(`<${escapedFind}([^>]*)>([\\s\\S]*?)<\\/\\1>`, "gi");
+  // The new regex pattern now handles both self-closing tags and those with a closing tag
+  const tagPattern = new RegExp(`<${escapedFind}([^>]*)(\/?>)(?:([\\s\\S]*?)<\\/\\1>)?`, "gi");
 
   return input.replaceAll(
     tagPattern,
-    (fullMatch, tagName: string, attrs: string, content: string) => {
-      // Logic lọc class
+    (fullMatch, tagName: string, attrsAndSlash: string, content: string = '') => {
+      // Check if it's a self-closing tag
+      const isSelfClosing = attrsAndSlash.endsWith('/');
+
+      // Class filter logic
       if (classFilter) {
-        const classMatch = attrs.match(/\s+class\s*=\s*(['"])(.*?)\1/i);
+        const classMatch = attrsAndSlash.match(/\s+class\s*=\s*(['"])(.*?)\1/i);
         if (classMatch) {
           const classValue = classMatch[2];
           const filterClasses = classFilter.toLowerCase().split(/\s+/).filter(Boolean);
           const classes = classValue.toLowerCase().split(/\s+/).filter(Boolean);
-          
-          const isClassMatch = filterClasses.every((fc) => classes.includes(fc));
 
+          const isClassMatch = filterClasses.every((fc) => classes.includes(fc));
           if (!isClassMatch) {
             return fullMatch;
           }
@@ -56,15 +59,20 @@ export function replaceTagName(input: string, options: HtmlReplaceOptions): stri
         }
       }
 
-      // Xử lý thay thế
+      // Replacement logic
       if (replace) {
-        // Thay thế tên thẻ, giữ nguyên thuộc tính và nội dung
-        const newOpenTag = `<${replace}${attrs}>`;
-        const newCloseTag = `</${replace}>`;
-        return `${newOpenTag}${content}${newCloseTag}`;
+        if (isSelfClosing) {
+          // Replace the tag name, keep attributes and the self-closing format
+          return `<${replace}${attrsAndSlash.replace(/\s*\/?$/, ' /')}>`;
+        } else {
+          // Replace the tag name, keep attributes and content
+          const newOpenTag = `<${replace}${attrsAndSlash}>`;
+          const newCloseTag = `</${replace}>`;
+          return `${newOpenTag}${content}${newCloseTag}`;
+        }
       } else {
-        // Xóa thẻ, chỉ giữ lại nội dung
-        return '';
+        // Remove the tag, keep content for non-self-closing tags, or return an empty string for self-closing tags
+        return isSelfClosing ? '' : content;
       }
     }
   );
@@ -184,54 +192,6 @@ export function replaceHtmlAttribute(
       if (!isClassMatch) return match;
     }
 
-    if (attributeName.toLowerCase() === "style") {
-      return match.replace(
-        /\s*style\s*=\s*(['"]|{)?\s*([^'"}]*?)\s*(['"]|})?\s*/gi,
-        (_, quoteStart: string | undefined, styleValue: string) => {
-          let newStyleValue = styleValue;
-
-          if (find === "" && replace !== "") {
-            // Add new style if find is empty
-            newStyleValue = newStyleValue ? `${newStyleValue}; ${replace}` : replace;
-          } else if (find !== "") {
-            // Process style replacement
-            const stylePairs = newStyleValue
-              .split(";")
-              .map((s) => s.trim())
-              .filter(Boolean);
-            const findStyles = find
-              .split(";")
-              .map((s) => s.trim())
-              .filter(Boolean);
-
-            const updatedStyles = stylePairs.filter((style) => {
-              if (useRegex) {
-                return !pattern.test(style);
-              }
-              return !findStyles.some((fs) => {
-                const normalizedFs = caseSensitive ? fs : fs.toLowerCase();
-                const normalizedStyle = caseSensitive ? style : style.toLowerCase();
-                return normalizedStyle === normalizedFs;
-              });
-            });
-
-            if (replace !== "") {
-              updatedStyles.push(replace);
-            }
-
-            newStyleValue = updatedStyles.join("; ");
-          }
-
-          if (!newStyleValue) {
-            return attrs.replace(/\s*style\s*=\s*(['"]|{)[^'"}]*(['"]|})\s*/gi, "");
-          }
-
-          const quote = quoteStart && quoteStart !== "{" ? quoteStart : '"';
-          return ` style=${quote}${newStyleValue}${quote}`;
-        }
-      );
-    }
-
     const attrRegex = new RegExp(
       `\\s*${attributeName}\\s*=\\s*(['"])(.*?)\\1`,
       "gi"
@@ -248,7 +208,8 @@ export function replaceHtmlAttribute(
  * Replace style content.
  */
 export function replaceHtmlStyle(input: string, options: HtmlReplaceOptions): string {
-  return replaceHtmlAttribute(input, "style", options);
+  replaceHtmlAttribute(input, "style", options);
+  return " ";
 }
 
 /**
