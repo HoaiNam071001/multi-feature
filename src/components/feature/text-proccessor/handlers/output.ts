@@ -3,7 +3,7 @@ import {
   replaceHtmlClassName,
   replaceHtmlContent,
   replaceHtmlStyle,
-  replaceTagName,
+  replaceTagName
 } from "./htmlProcessors";
 import {
   capitalize,

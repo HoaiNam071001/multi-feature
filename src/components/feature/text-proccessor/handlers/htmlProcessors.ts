@@ -1,3 +1,4 @@
+
 // =========================
 // HTML TEXT FEATURES (Refactored)
 // =========================
@@ -22,35 +23,46 @@ export function trimInput(input: string): string {
 /**
  * Replace tagName with options for find, replace, classFilter, useRegex, caseSensitive.
  */
-export function replaceTagName(input: string, options: HtmlReplaceOptions): string {
+export function replaceTagName(
+  input: string,
+  options: HtmlReplaceOptions
+): string {
   input = trimInput(input);
-  const {
-    find,
-    replace,
-    classFilter,
-    useRegex = false,
-  } = options;
+  const { find, replace, classFilter, useRegex = false } = options;
 
   // Build a regex for the tag name, applying useRegex to 'find'
   const escapedFind = useRegex ? `(${find})` : `(${escapeRegex(find)})`;
   // The new regex pattern now handles both self-closing tags and those with a closing tag
-  const tagPattern = new RegExp(`<${escapedFind}([^>]*)(\/?>)(?:([\\s\\S]*?)<\\/\\1>)?`, "gi");
+  const tagPattern = new RegExp(
+    `<${escapedFind}([^>]*)(\/?>)(?:([\\s\\S]*?)<\\/\\1>)?`,
+    "gi"
+  );
 
   return input.replaceAll(
     tagPattern,
-    (fullMatch, tagName: string, attrsAndSlash: string, content: string = '') => {
+    (
+      fullMatch,
+      tagName: string,
+      attrsAndSlash: string,
+      content: string = ""
+    ) => {
       // Check if it's a self-closing tag
-      const isSelfClosing = attrsAndSlash.endsWith('/');
+      const isSelfClosing = attrsAndSlash.endsWith("/");
 
       // Class filter logic
       if (classFilter) {
         const classMatch = attrsAndSlash.match(/\s+class\s*=\s*(['"])(.*?)\1/i);
         if (classMatch) {
           const classValue = classMatch[2];
-          const filterClasses = classFilter.toLowerCase().split(/\s+/).filter(Boolean);
+          const filterClasses = classFilter
+            .toLowerCase()
+            .split(/\s+/)
+            .filter(Boolean);
           const classes = classValue.toLowerCase().split(/\s+/).filter(Boolean);
 
-          const isClassMatch = filterClasses.every((fc) => classes.includes(fc));
+          const isClassMatch = filterClasses.every((fc) =>
+            classes.includes(fc)
+          );
           if (!isClassMatch) {
             return fullMatch;
           }
@@ -63,7 +75,7 @@ export function replaceTagName(input: string, options: HtmlReplaceOptions): stri
       if (replace) {
         if (isSelfClosing) {
           // Replace the tag name, keep attributes and the self-closing format
-          return `<${replace}${attrsAndSlash.replace(/\s*\/?$/, ' /')}>`;
+          return `<${replace}${attrsAndSlash.replace(/\s*\/?$/, " /")}>`;
         } else {
           // Replace the tag name, keep attributes and content
           const newOpenTag = `<${replace}${attrsAndSlash}>`;
@@ -72,7 +84,7 @@ export function replaceTagName(input: string, options: HtmlReplaceOptions): stri
         }
       } else {
         // Remove the tag, keep content for non-self-closing tags, or return an empty string for self-closing tags
-        return isSelfClosing ? '' : content;
+        return isSelfClosing ? "" : content;
       }
     }
   );
@@ -81,7 +93,10 @@ export function replaceTagName(input: string, options: HtmlReplaceOptions): stri
 /**
  * Replace class names with enhanced matching logic.
  */
-export function replaceHtmlClassName(input: string, options: HtmlReplaceOptions): string {
+export function replaceHtmlClassName(
+  input: string,
+  options: HtmlReplaceOptions
+): string {
   input = trimInput(input);
   const {
     find,
@@ -101,7 +116,10 @@ export function replaceHtmlClassName(input: string, options: HtmlReplaceOptions)
     const escapedFind = escapeRegex(find);
     pattern = match
       ? new RegExp(`^${escapedFind}$`, regexFlags)
-      : new RegExp(`\\b${escapedFind.split(/\s+/).join("\\b|\\b")}\\b`, regexFlags);
+      : new RegExp(
+          `\\b${escapedFind.split(/\s+/).join("\\b|\\b")}\\b`,
+          regexFlags
+        );
   }
 
   return input.replace(
@@ -115,7 +133,8 @@ export function replaceHtmlClassName(input: string, options: HtmlReplaceOptions)
         /\s*class\s*=\s*(['"])(.*?)\1/gi,
         (_, quote: string, classValue: string) => {
           if (useRegex) {
-            if (!pattern.test(classValue)) return ` class=${quote}${classValue}${quote}`;
+            if (!pattern.test(classValue))
+              return ` class=${quote}${classValue}${quote}`;
             return ` class=${quote}${classValue.replace(pattern, replace)}${quote}`;
           }
 
@@ -124,7 +143,8 @@ export function replaceHtmlClassName(input: string, options: HtmlReplaceOptions)
           let isMatch: boolean;
 
           if (match) {
-            isMatch = findClasses.length === classes.length &&
+            isMatch =
+              findClasses.length === classes.length &&
               findClasses.every((fc) => classes.includes(fc));
           } else {
             isMatch = findClasses.every((fc) => classes.includes(fc));
@@ -147,67 +167,125 @@ export function replaceHtmlClassName(input: string, options: HtmlReplaceOptions)
 /**
  * Replace any attribute value by name.
  */
+
 export function replaceHtmlAttribute(
   input: string,
   attributeName: string,
   options: HtmlReplaceOptions
 ): string {
   input = trimInput(input);
+
   const {
-    find,
-    replace,
+    find = "",
+    replace = "",
     classFilter,
     tagFilter,
     useRegex = false,
     caseSensitive = false,
+    match = false,
   } = options;
 
-  if (find === "" && replace === "") {
-    return input; // No processing if both find and replace are empty
+  if (!attributeName) {
+    return input;
   }
 
-  const regexFlags = caseSensitive ? "g" : "gi";
-  const pattern = useRegex
-    ? new RegExp(find, regexFlags)
-    : new RegExp(escapeRegex(find), regexFlags);
+  // regex flag cho giá trị attribute
+  const regexFlags = caseSensitive ? "" : "i"; // nếu cần match toàn bộ thì không dùng g
+  const pattern =
+    useRegex && find
+      ? new RegExp(find, regexFlags)
+      : find
+        ? new RegExp(escapeRegex(find), regexFlags)
+        : null;
 
-  return input.replace(/<([a-z0-9]+)([^>]*)>/gi, (match, tagName: string, attrs: string) => {
-    if (tagFilter?.length && !tagFilter.includes(tagName.toLowerCase())) {
-      return match;
-    }
-
-    if (classFilter) {
-      const classMatch = attrs.match(/\s*class\s*=\s*(['"])(.*?)\1/i);
-      if (!classMatch) return match;
-      const classValue = classMatch[2];
-      const classes = classValue.split(/\s+/).filter(Boolean);
-      const findClasses = useRegex ? [find] : find.split(/\s+/).filter(Boolean);
-
-      let isClassMatch: boolean;
-      if (useRegex) {
-        isClassMatch = pattern.test(classValue);
-      } else {
-        isClassMatch = findClasses.every((fc) => classes.includes(fc));
+  return input.replace(
+    /<([a-z0-9]+)([^>]*)>/gi,
+    (wholeTag, tagName: string, attrs: string) => {
+      // filter theo tag
+      if (tagFilter?.length) {
+        const tags = tagFilter.map((e) => e.toLowerCase().trim());
+        if (!tags.includes(tagName.toLowerCase())) {
+          return wholeTag;
+        }
       }
-      if (!isClassMatch) return match;
+
+      // filter theo class
+      if (classFilter) {
+        const classMatch = attrs.match(/\s*class\s*=\s*(['"])(.*?)\1/i);
+        if (!classMatch) return wholeTag;
+        const classValue = classMatch[2];
+        const classes = classValue.split(/\s+/).filter(Boolean);
+        const requiredClasses = classFilter.split(/\s+/).filter(Boolean);
+
+        const hasAllClasses = requiredClasses.every((c) => classes.includes(c));
+        if (!hasAllClasses) return wholeTag;
+      }
+
+      // tìm attribute hiện tại
+      const attrRegex = new RegExp(
+        `\\s*${attributeName}\\s*=\\s*(['"])(.*?)\\1`,
+        caseSensitive ? "g" : "gi"
+      );
+      const hasAttr = attrRegex.test(attrs);
+
+      // Trường hợp 1: find rỗng, replace có -> thêm attribute nếu chưa có
+      if (!find && replace) {
+        if (!hasAttr) {
+          return `<${tagName}${attrs} ${attributeName}="${replace}">`;
+        }
+        return wholeTag.replace(attrRegex, ` ${attributeName}="${replace}"`);
+      }
+
+      // Trường hợp 2: find & replace cùng rỗng -> bỏ qua
+      if (!find && !replace) {
+        return wholeTag;
+      }
+
+      // Trường hợp 3: find có, replace rỗng -> xoá attribute
+      if (find && !replace) {
+        return wholeTag.replace(attrRegex, "");
+      }
+
+      // Trường hợp 4: find & replace có -> thay thế giá trị
+      if (find && replace && hasAttr && pattern) {
+        return wholeTag.replace(
+          attrRegex,
+          (_, quote: string, value: string) => {
+            let newValue = value;
+
+            if (match) {
+              // match toàn bộ
+              const isEqual = useRegex
+                ? pattern.test(value) && value.match(pattern)?.[0] === value
+                : caseSensitive
+                  ? value === find
+                  : value.toLowerCase() === find.toLowerCase();
+
+              if (isEqual) {
+                newValue = replace;
+              }
+            } else {
+              // match substring
+              newValue = value.replace(pattern, replace);
+            }
+
+            return ` ${attributeName}=${quote}${newValue}${quote}`;
+          }
+        );
+      }
+
+      return wholeTag;
     }
-
-    const attrRegex = new RegExp(
-      `\\s*${attributeName}\\s*=\\s*(['"])(.*?)\\1`,
-      "gi"
-    );
-
-    return match.replace(attrRegex, (_, quote: string, value: string) => {
-      const newValue = value.replace(pattern, replace);
-      return ` ${attributeName}=${quote}${newValue}${quote}`;
-    });
-  });
+  );
 }
 
 /**
  * Replace style content.
  */
-export function replaceHtmlStyle(input: string, options: HtmlReplaceOptions): string {
+export function replaceHtmlStyle(
+  input: string,
+  options: HtmlReplaceOptions
+): string {
   replaceHtmlAttribute(input, "style", options);
   return " ";
 }
@@ -218,7 +296,10 @@ export function replaceHtmlStyle(input: string, options: HtmlReplaceOptions): st
 /**
  * Replace inner content of tags with enhanced matching logic.
  */
-export function replaceHtmlContent(input: string, options: HtmlReplaceOptions): string {
+export function replaceHtmlContent(
+  input: string,
+  options: HtmlReplaceOptions
+): string {
   input = trimInput(input);
   const {
     find,

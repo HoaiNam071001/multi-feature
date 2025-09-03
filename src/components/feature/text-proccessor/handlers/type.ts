@@ -18,6 +18,7 @@ export enum StepType {
   ReplaceHtmlClassName = "replaceHtmlClassName",
   ReplaceHtmlContent = "replaceHtmlContent",
   ReplaceTagName = "replaceTagName",
+  FormatHtml = "formatHtml",
 }
 
 export type Step =
@@ -114,4 +115,5 @@ export const stepTypeNames: { [key in StepType]: string } = {
   [StepType.ReplaceHtmlClassName]: "class",
   [StepType.ReplaceHtmlContent]: "Content",
   [StepType.ReplaceTagName]: "Tag",
+  [StepType.FormatHtml]: "Format",
 };
