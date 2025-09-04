@@ -1,9 +1,7 @@
-import { ContentWrapper } from "@/components/layout/Content-wrapper";
-import FeatureGrid from "@/components/common/FeatureGrid";
-import React from "react";
 import { FeatureItem } from "@/components/common/FeatureCard";
+import FeatureGrid from "@/components/common/FeatureGrid";
 import { RouterPath } from "@/models/router";
-import { FileText, Gamepad2, MapPin } from "lucide-react";
+import { FileImage, FileText, Gamepad2, MapPin } from "lucide-react";
 
 export const appFeatures: FeatureItem[] = [
   {
@@ -26,7 +24,14 @@ export const appFeatures: FeatureItem[] = [
     icon: <FileText />,
     description:
       "Xử lý văn bản với các tính năng như chuyển đổi thường xuyên, xóa ký tự đặc biệt, cắt ngắn văn bản, và nhiều hơn nữa",
-  }
+  },
+  {
+    name: "Trích Xuất Ảnh PDF",
+    url: RouterPath.PDF_IMAGE_EXTRACTOR,
+    icon: <FileImage />,
+    description:
+      "Trích xuất và tải xuống tất cả các hình ảnh có trong tệp PDF một cách nhanh chóng và an toàn ngay trên trình duyệt.",
+  },
 ];
 
 const HomePage = () => {

@@ -2,7 +2,7 @@
 
 import { ContentWrapper } from "@/components/layout/Content-wrapper";
 
-export default function PdfImageExtractorLayout({
+export default function ProvinceLookupLayout({
   children,
 }: {
   children: React.ReactNode;
