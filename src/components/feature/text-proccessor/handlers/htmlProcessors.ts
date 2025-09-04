@@ -30,64 +30,57 @@ export function replaceTagName(
   input = trimInput(input);
   const { find, replace, classFilter, useRegex = false } = options;
 
-  // Build a regex for the tag name, applying useRegex to 'find'
-  const escapedFind = useRegex ? `(${find})` : `(${escapeRegex(find)})`;
-  // The new regex pattern now handles both self-closing tags and those with a closing tag
-  const tagPattern = new RegExp(
-    `<${escapedFind}([^>]*)(\/?>)(?:([\\s\\S]*?)<\\/\\1>)?`,
-    "gi"
-  );
+  // Xây dựng regex để tìm kiếm thẻ mở và đóng.
+  // Chúng ta sẽ xử lý chúng một cách riêng biệt để giữ lại nội dung.
+  const escapedFind = useRegex ? find : escapeRegex(find);
 
-  return input.replaceAll(
-    tagPattern,
-    (
-      fullMatch,
-      tagName: string,
-      attrsAndSlash: string,
-      content: string = ""
-    ) => {
-      // Check if it's a self-closing tag
-      const isSelfClosing = attrsAndSlash.endsWith("/");
+  // Regex cho thẻ mở (ví dụ: <div class="...">)
+  const openTagPattern = new RegExp(`<(${escapedFind})([^>]*)>`, "gi");
+  // Regex cho thẻ đóng (ví dụ: </div>)
+  const closeTagPattern = new RegExp(`</(${escapedFind})>`, "gi");
 
-      // Class filter logic
-      if (classFilter) {
-        const classMatch = attrsAndSlash.match(/\s+class\s*=\s*(['"])(.*?)\1/i);
-        if (classMatch) {
-          const classValue = classMatch[2];
-          const filterClasses = classFilter
-            .toLowerCase()
-            .split(/\s+/)
-            .filter(Boolean);
-          const classes = classValue.toLowerCase().split(/\s+/).filter(Boolean);
+  // Hàm helper để kiểm tra class filter
+  const hasMatchingClass = (attrs: string, filter: string): boolean => {
+    if (!filter) return true;
+    const classMatch = attrs.match(/\s+class\s*=\s*(['"])(.*?)\1/i);
+    if (!classMatch) return false;
 
-          const isClassMatch = filterClasses.every((fc) =>
-            classes.includes(fc)
-          );
-          if (!isClassMatch) {
-            return fullMatch;
-          }
-        } else {
-          return fullMatch;
-        }
+    const classValue = classMatch[2];
+    const filterClasses = filter.toLowerCase().split(/\s+/).filter(Boolean);
+    const classes = classValue.toLowerCase().split(/\s+/).filter(Boolean);
+
+    return filterClasses.every((fc) => classes.includes(fc));
+  };
+
+  // Thay thế các thẻ mở
+  let result = input.replaceAll(
+    openTagPattern,
+    (fullMatch, tagName, attrsAndSlash) => {
+      // Kiểm tra class filter
+      if (classFilter && !hasMatchingClass(attrsAndSlash, classFilter)) {
+        return fullMatch;
       }
 
-      // Replacement logic
-      if (replace) {
-        if (isSelfClosing) {
-          // Replace the tag name, keep attributes and the self-closing format
-          return `<${replace}${attrsAndSlash.replace(/\s*\/?$/, " /")}>`;
-        } else {
-          // Replace the tag name, keep attributes and content
-          const newOpenTag = `<${replace}${attrsAndSlash}>`;
-          const newCloseTag = `</${replace}>`;
-          return `${newOpenTag}${content}${newCloseTag}`;
-        }
-      } else {
-        // Remove the tag, keep content for non-self-closing tags, or return an empty string for self-closing tags
-        return isSelfClosing ? "" : content;
+      // Xử lý thẻ tự đóng
+      if (attrsAndSlash.endsWith("/")) {
+        const newTag = replace ? `<${replace}${attrsAndSlash}>` : "";
+        return newTag;
       }
+
+      // Trả về thẻ mở đã được thay thế
+      return replace ? `<${replace}${attrsAndSlash}>` : "";
     }
   );
+
+  // Thay thế các thẻ đóng
+  if (replace) {
+    result = result.replaceAll(closeTagPattern, `</${replace}>`);
+  } else {
+    // Nếu không có 'replace' thì xóa thẻ đóng
+    result = result.replaceAll(closeTagPattern, "");
+  }
+
+  return result;
 }
 
 /**

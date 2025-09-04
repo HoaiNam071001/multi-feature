@@ -37,10 +37,10 @@ import {
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
+import { ResultPopup } from "./ResultPopup";
 
 interface StepListProps {
   steps: StepItem[];
-  stepOutputs: string[];
   removeStep: (index: number) => void;
   reorderSteps: (newSteps: StepItem[]) => void;
 }
@@ -49,7 +49,6 @@ interface SortableItemProps {
   step: StepItem;
   index: number;
   removeStep: (index: number) => void;
-  stepOutputs: string[];
 }
 
 // =============================
@@ -81,12 +80,14 @@ const StepOptions: React.FC<{
   </div>
 );
 
-const HtmlTitle = ({ step, title }: { step: StepItem, title?: string }) => {
+const HtmlTitle = ({ step, title }: { step: StepItem; title?: string }) => {
   const opts = step.options as BaseHtmlOptions;
 
   return (
     <div className="flex items-center">
-      <span>{stepTypeNames[step.type]} {title}</span>
+      <span>
+        {stepTypeNames[step.type]} {title}
+      </span>
 
       <StepOptions
         caseSensitive={opts.caseSensitive}
@@ -106,7 +107,6 @@ const SortableItem: React.FC<SortableItemProps> = ({
   step,
   index,
   removeStep,
-  stepOutputs,
 }) => {
   const { attributes, listeners, setNodeRef, transform, transition } =
     useSortable({ id: step.id });
@@ -152,8 +152,9 @@ const SortableItem: React.FC<SortableItemProps> = ({
               {opts.find}
               {'"'} → {'."'}
               {opts.replace}
-              {'"'}
-              ({'<'}{opts.tagFilter?.join(", ")}{'>'} )
+              {'"'}({"<"}
+              {opts.tagFilter?.join(", ")}
+              {">"} )
             </div>
           </div>
         );
@@ -169,7 +170,11 @@ const SortableItem: React.FC<SortableItemProps> = ({
               {'"'} → {'"'}
               {opts.replace}
               {'"'}
-              (.{'"'}{opts.classFilter}{'"'}, {'<'}{opts.tagFilter?.join(", ")}{'>'} )
+              (.{'"'}
+              {opts.classFilter}
+              {'"'}, {"<"}
+              {opts.tagFilter?.join(", ")}
+              {">"} )
             </div>
           </div>
         );
@@ -193,13 +198,17 @@ const SortableItem: React.FC<SortableItemProps> = ({
         const opts = s.options as ReplaceHtmlAttributesOptions;
         return (
           <div>
-            <HtmlTitle step={step} title={`[${opts.attributeName}]`}/>
+            <HtmlTitle step={step} title={`[${opts.attributeName}]`} />
             <div className="truncate">
               {opts.find}
               {'"'} → {'"'}
               {opts.replace}
               {'" '}
-              (.{'"'}{opts.classFilter}{'"'}, {'<'}{opts.tagFilter?.join(", ")}{'>'} )
+              (.{'"'}
+              {opts.classFilter}
+              {'"'}, {"<"}
+              {opts.tagFilter?.join(", ")}
+              {">"} )
             </div>
           </div>
         );
@@ -215,7 +224,9 @@ const SortableItem: React.FC<SortableItemProps> = ({
               {">"} → {"<"}
               {opts.replace}
               {"> "}
-              (.{'"'}{opts.classFilter}{'"'})
+              (.{'"'}
+              {opts.classFilter}
+              {'"'})
             </div>
           </div>
         );
@@ -224,8 +235,6 @@ const SortableItem: React.FC<SortableItemProps> = ({
         return <span>{stepTypeNames[s.type]}</span>;
     }
   };
-
-  const output = stepOutputs[index] || "";
 
   return (
     <li
@@ -241,20 +250,13 @@ const SortableItem: React.FC<SortableItemProps> = ({
       >
         <GripVertical className="w-4 h-4" />
       </button>
+      <div className="absolute left-3 bottom-0 opacity-0 group-hover:opacity-100 duration-300">
+        <ResultPopup step={step} />
+      </div>
 
       {/* Nội dung */}
       <div className="flex-1 min-w-0">
         <div className="font-medium truncate">{renderStepDetails(step)}</div>
-        {/* <Tooltip>
-          <TooltipTrigger asChild>
-            <div className="text-gray-500 italic truncate text-sm">
-              {output ? output.slice(0, 20) + (output.length > 20 ? "…" : "") : ""}
-            </div>
-          </TooltipTrigger>
-          <TooltipContent className="max-w-xs break-words">
-            {output}
-          </TooltipContent>
-        </Tooltip> */}
       </div>
 
       {/* Nút xoá */}
@@ -277,7 +279,6 @@ const SortableItem: React.FC<SortableItemProps> = ({
 // =============================
 const StepList: React.FC<StepListProps> = ({
   steps,
-  stepOutputs,
   removeStep,
   reorderSteps,
 }) => {
@@ -317,7 +318,6 @@ const StepList: React.FC<StepListProps> = ({
               step={step}
               index={index}
               removeStep={removeStep}
-              stepOutputs={stepOutputs}
             />
           ))}
         </ul>

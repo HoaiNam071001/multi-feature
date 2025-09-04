@@ -18,7 +18,6 @@ export enum StepType {
   ReplaceHtmlClassName = "replaceHtmlClassName",
   ReplaceHtmlContent = "replaceHtmlContent",
   ReplaceTagName = "replaceTagName",
-  FormatHtml = "formatHtml",
 }
 
 export type Step =
@@ -50,7 +49,7 @@ export type Step =
   | { type: StepType.ReplaceHtmlContent; options: ReplaceHtmlContentOptions }
   | { type: StepType.ReplaceTagName; options: ReplaceTagNameOptions };
 
-export type StepItem = Step & { id: string };
+export type StepItem = Step & { id: string; input?: string; output?: string };
 // ======================
 // OPTIONS INTERFACES
 // ======================
@@ -111,9 +110,8 @@ export const stepTypeNames: { [key in StepType]: string } = {
   [StepType.RemoveExtraSpaces]: "Xóa khoảng trắng thừa",
   [StepType.RemoveDiacritics]: "Loại bỏ dấu",
   [StepType.ReplaceHtmlStyles]: "style",
-  [StepType.ReplaceHtmlAttributes]: "Attr",
-  [StepType.ReplaceHtmlClassName]: "class",
-  [StepType.ReplaceHtmlContent]: "Content",
-  [StepType.ReplaceTagName]: "Tag",
-  [StepType.FormatHtml]: "Format",
+  [StepType.ReplaceHtmlAttributes]: "Thuộc tính",
+  [StepType.ReplaceHtmlClassName]: "Lớp",
+  [StepType.ReplaceHtmlContent]: "Nội dung",
+  [StepType.ReplaceTagName]: "Thẻ",
 };

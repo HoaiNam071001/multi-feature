@@ -4,9 +4,8 @@
 
 import StepList from "@/components/feature/text-proccessor/StepList";
 import React, { useMemo, useState } from "react";
-import { ToastContainer } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
-import { v4 as uuidv4 } from 'uuid';
+import "react-toastify/dist/ReactToastify.css";
+import { v4 as uuidv4 } from "uuid";
 import { ControlPanel } from "./ControlPanel";
 import { processStep, Step, StepItem } from "./handlers";
 
@@ -26,19 +25,23 @@ const TextProcessor: React.FC = () => {
     setSteps(newSteps);
   };
 
-  const stepOutputs = useMemo(() => {
-    const outputs: string[] = [];
+  const processedSteps = useMemo(() => {
+    const newSteps: StepItem[] = [];
     let currentText = inputText;
-  
+
     for (const step of steps) {
-      currentText = processStep(currentText, step);
-      outputs.push(currentText);
+      const output = processStep(currentText, step);
+      newSteps.push({ ...step, input: currentText, output });
+      currentText = output;
     }
-    return outputs;
+
+    return newSteps;
   }, [inputText, steps]);
 
-  const outputText =
-    stepOutputs.length > 0 ? stepOutputs[stepOutputs.length - 1] : inputText;
+  const outputText: string =
+    processedSteps.length > 0
+      ? processedSteps[processedSteps.length - 1].output || ""
+      : inputText;
 
   const handleClear = () => {
     setInputText("");
@@ -58,13 +61,11 @@ const TextProcessor: React.FC = () => {
       </div>
       <div className="md:col-span-4">
         <StepList
-          steps={steps}
-          stepOutputs={stepOutputs}
+          steps={processedSteps}
           removeStep={removeStep}
           reorderSteps={reorderSteps}
         />
       </div>
-      <ToastContainer />
     </div>
   );
 };
