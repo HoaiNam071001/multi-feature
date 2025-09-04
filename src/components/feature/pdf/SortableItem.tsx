@@ -1,7 +1,7 @@
 import { Checkbox } from "@/components/ui/checkbox";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { GripVertical } from "lucide-react";
+import { GripVertical, Trash2 } from "lucide-react";
 
 export interface PagePreview {
   id: string;
@@ -14,9 +14,11 @@ export interface PagePreview {
 export const SortableItem = ({
   page,
   toggle,
+  deletePage,
 }: {
   page: PagePreview;
   toggle: (id: string) => void;
+  deletePage: (id: string) => void;
 }) => {
   const { attributes, listeners, setNodeRef, transform, transition } =
     useSortable({ id: page.id });
@@ -45,16 +47,25 @@ export const SortableItem = ({
         <GripVertical />
       </div>
 
+      {/* Delete button */}
+      <button
+        onClick={() => deletePage(page.id)}
+        className="absolute bottom-2 right-2 bg-red-500 text-white p-1 rounded shadow hover:bg-red-600 z-10"
+      >
+        <Trash2 size={14} />
+      </button>
+
       <img src={page.src} alt={page.id} />
+
       <label className="absolute top-2 left-2 bg-white px-2 py-1 text-xs rounded shadow flex items-center gap-1">
         <Checkbox
           className="cursor-pointer w-5 h-5"
           checked={page.selected}
-          onCheckedChange={() => {
-            toggle(page.id);
-          }}
+          onCheckedChange={() => toggle(page.id)}
+          onPointerDown={(e) => e.stopPropagation()}
         />
       </label>
+
       <label className="absolute bottom-0 left-0 bg-white px-2 py-1 text-xs border-t flex gap-1 h-[40px] w-full line-clamp-2 overflow-hidden">
         <div>{page.file.name}</div>
         <div className="flex items-end text-gray-400">{page.pageIndex + 1}</div>
