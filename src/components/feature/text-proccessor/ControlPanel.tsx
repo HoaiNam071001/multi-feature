@@ -101,7 +101,7 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
   return (
     <div>
       <div className="text-xl font-bold mb-4 flex items-center">
-        <I18n value="Điều khiển" />
+        <I18n value="Xử lý văn bản" />
         <Button variant="destructive" className="ml-auto" onClick={handleClear}>
           <I18n value="Xóa tất cả" />
         </Button>
