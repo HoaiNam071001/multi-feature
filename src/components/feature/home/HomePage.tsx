@@ -27,7 +27,7 @@ export const appFeatures: FeatureItem[] = [
   },
   {
     name: "Trích Xuất Ảnh PDF",
-    url: RouterPath.PDF_IMAGE_EXTRACTOR,
+    url: RouterPath.PDF,
     icon: <FileImage />,
     description:
       "Trích xuất và tải xuống tất cả các hình ảnh có trong tệp PDF một cách nhanh chóng và an toàn ngay trên trình duyệt.",

@@ -5,5 +5,5 @@ export enum RouterPath {
   MINI_GAME = "/mini-game",
   PROVINCE_LOOKUP = "/province-lookup",
   TEXT_PROCESSOR = "/text-processor",
-  PDF_IMAGE_EXTRACTOR = "/pdf-img-extractor",
+  PDF = "/pdf",
 }
