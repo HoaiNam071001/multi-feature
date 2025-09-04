@@ -1,81 +1,155 @@
 "use client";
 
-import { extractImagesFromPdf } from "@/helpers/pdf"; // hàm render preview từng trang
+import { extractImagesFromPdf } from "@/helpers/pdf";
+import {
+  closestCenter,
+  DndContext,
+  DragEndEvent,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+} from "@dnd-kit/core";
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
 import { PDFDocument } from "pdf-lib";
 import { useState } from "react";
+import { SortableItem } from "./SortableItem";
+
+interface PagePreview {
+  id: string;
+  src: string;
+  file: File;
+  pageIndex: number;
+}
 
 export default function PdfPageSelector() {
-  const [images, setImages] = useState<string[]>([]);
-  const [selectedPages, setSelectedPages] = useState<number[]>([]);
-  const [file, setFile] = useState<File | null>(null);
+  const [images, setImages] = useState<PagePreview[]>([]);
+  const [selectedPages, setSelectedPages] = useState<PagePreview[]>([]);
+
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const f = e.target.files?.[0];
-    if (f) {
-      setFile(f);
+    const fs = Array.from(e.target.files ?? []);
+    for (const f of fs) {
       const imgs = await extractImagesFromPdf(f);
-      setImages(imgs);
-      setSelectedPages([]); // reset
+      const previews = imgs.map((src, idx) => ({
+        id: `${f.name}-${idx}`,
+        src,
+        file: f,
+        pageIndex: idx,
+      }));
+      console.log('previews', previews);
+      setImages((prev) => [...prev, ...previews]);
     }
   };
 
-  const togglePage = (pageIndex: number) => {
+  const togglePage = (page: PagePreview) => {
     setSelectedPages((prev) =>
-      prev.includes(pageIndex)
-        ? prev.filter((p) => p !== pageIndex)
-        : [...prev, pageIndex]
+      prev.find((p) => p.id === page.id)
+        ? prev.filter((p) => p.id !== page.id)
+        : [...prev, page]
     );
   };
 
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+    if (over && active.id !== over.id) {
+      setSelectedPages((items) => {
+        const oldIndex = items.findIndex((i) => i.id === active.id);
+        const newIndex = items.findIndex((i) => i.id === over.id);
+        return arrayMove(items, oldIndex, newIndex);
+      });
+    }
+  };
+
   const handleExport = async () => {
-    if (!file || selectedPages.length === 0) return;
+    if (selectedPages.length === 0) return;
 
-    const pdfData = await file.arrayBuffer();
-    const srcDoc = await PDFDocument.load(pdfData);
-    const newDoc = await PDFDocument.create();
+    const newDoc: PDFDocument = await PDFDocument.create();
 
-    for (const pageIndex of selectedPages) {
-      const [copiedPage] = await newDoc.copyPages(srcDoc, [pageIndex]);
+    for (const sel of selectedPages) {
+      const pdfData: ArrayBuffer = await sel.file.arrayBuffer();
+      const srcDoc: PDFDocument = await PDFDocument.load(pdfData);
+      const [copiedPage] = await newDoc.copyPages(srcDoc, [sel.pageIndex]);
       newDoc.addPage(copiedPage);
     }
 
     const newPdfBytes = await newDoc.save();
-    const blob = new Blob([newPdfBytes as unknown as BlobPart], {
-      type: "application/pdf",
-    });
+    const blob = new Blob([newPdfBytes as unknown as ArrayBuffer], { type: "application/pdf" });
     const url = URL.createObjectURL(blob);
 
     const a = document.createElement("a");
     a.href = url;
-    a.download = "selected-pages.pdf";
+    a.download = "merged.pdf";
     a.click();
     URL.revokeObjectURL(url);
   };
 
   return (
     <div className="p-4">
-      <input type="file" accept="application/pdf" onChange={handleFileChange} />
+      <input
+        type="file"
+        accept="application/pdf"
+        multiple
+        onChange={handleFileChange}
+      />
 
       {images.length > 0 && (
         <>
-          <div className="grid grid-cols-4 gap-4 mt-4">
-            {images.map((src, idx) => (
+          <h2 className="mt-4 font-bold">All Pages</h2>
+          <div className="grid grid-cols-8 gap-4 mt-2">
+            {images.map((page) => (
               <div
-                key={idx}
+                key={page.id}
                 className={`relative cursor-pointer border rounded ${
-                  selectedPages.includes(idx)
+                  selectedPages.find((p) => p.id === page.id)
                     ? "ring-4 ring-blue-500"
                     : "hover:ring-2 hover:ring-gray-400"
                 }`}
-                onClick={() => togglePage(idx)}
+                onClick={() => togglePage(page)}
               >
-                <img src={src} alt={`page-${idx + 1}`} />
+                <img src={page.src} alt={page.id} />
                 <span className="absolute top-2 left-2 bg-white px-2 py-1 text-xs rounded shadow">
-                  Page {idx + 1}
+                  {page.file.name} - Page {page.pageIndex + 1}
                 </span>
               </div>
             ))}
           </div>
+
+          <h2 className="mt-6 font-bold">Selected Pages (Drag to Reorder)</h2>
+          <DndContext
+            sensors={sensors}
+            collisionDetection={closestCenter}
+            onDragEnd={handleDragEnd}
+          >
+            <SortableContext
+              items={selectedPages.map((p) => p.id)}
+              strategy={verticalListSortingStrategy}
+            >
+              <div className="flex gap-2 flex-wrap mt-2">
+                {selectedPages.map((page) => (
+                  <SortableItem key={page.id} id={page.id}>
+                    <div className="relative border rounded w-32">
+                      <img src={page.src} alt={page.id} />
+                      <span className="absolute top-1 left-1 bg-white text-xs px-1 rounded">
+                        {page.pageIndex + 1}
+                      </span>
+                    </div>
+                  </SortableItem>
+                ))}
+              </div>
+            </SortableContext>
+          </DndContext>
 
           <button
             onClick={handleExport}
