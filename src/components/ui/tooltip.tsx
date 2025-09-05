@@ -1,7 +1,7 @@
 "use client"
 
-import * as React from "react"
 import * as TooltipPrimitive from "@radix-ui/react-tooltip"
+import * as React from "react"
 
 import { cn } from "@/lib/utils"
 
@@ -58,4 +58,21 @@ function TooltipContent({
   )
 }
 
-export { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider }
+interface TooltipWrapperProps {
+  content: React.ReactNode
+  children: React.ReactNode
+}
+
+function TooltipWrapper({ content, children }: TooltipWrapperProps) {
+  return (
+    <Tooltip>
+      <TooltipTrigger asChild>{children}</TooltipTrigger>
+      <TooltipContent>
+        {typeof content === "string" ? <p>{content}</p> : content}
+      </TooltipContent>
+    </Tooltip>
+  )
+}
+
+export { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger, TooltipWrapper }
+

@@ -1,20 +1,17 @@
 "use client";
 
 import { Checkbox } from "@/components/ui/checkbox";
+import { TooltipWrapper } from "@/components/ui/tooltip";
+import I18n from "@/components/utils/I18n";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import {
-  Copy,
-  GripVertical,
-  Plus,
-  RotateCcw,
-  Trash2,
-} from "lucide-react";
+import { Copy, GripVertical, Plus, RotateCcw, Trash2 } from "lucide-react";
+import { FileBadge, FileInfo } from "./PdfFileList";
 
 export interface PagePreview {
   id: string;
   src: string;
-  file: File;
+  file: FileInfo;
   pageIndex: number;
   selected: boolean;
   deleted?: boolean;
@@ -24,6 +21,7 @@ export interface PagePreview {
 
 export const SortableItem = ({
   page,
+  index,
   toggle,
   deletePage,
   clonePage,
@@ -31,6 +29,7 @@ export const SortableItem = ({
   rotatePage,
 }: {
   page: PagePreview;
+  index: number;
   toggle: (id: string) => void;
   deletePage: (id: string) => void;
   clonePage: (id: string) => void;
@@ -50,7 +49,7 @@ export const SortableItem = ({
       ref={setNodeRef}
       style={style}
       {...attributes}
-      className={`relative border rounded overflow-hidden ${
+      className={`relative border rounded overflow-hidden group ${
         page.selected
           ? "ring-4 ring-blue-500"
           : "hover:ring-2 hover:ring-gray-400"
@@ -59,37 +58,48 @@ export const SortableItem = ({
       {/* Drag handle */}
       <div
         {...listeners}
-        className="absolute top-2 right-2 cursor-grab text-gray-500 p-1 bg-white border rounded"
+        className="absolute top-2 right-2 cursor-grab text-gray-500 p-1 bg-white border rounded z-100"
       >
         <GripVertical size={14} />
       </div>
 
       {/* Action buttons */}
-      <div className="absolute bottom-2 right-2 flex gap-1 z-10">
-        <button
-          onClick={() => rotatePage(page.id)}
-          className="bg-white border p-1 rounded shadow hover:bg-gray-100"
-        >
-          <RotateCcw size={14} />
-        </button>
-        <button
-          onClick={() => clonePage(page.id)}
-          className="bg-white border p-1 rounded shadow hover:bg-gray-100"
-        >
-          <Copy size={14} />
-        </button>
-        <button
-          onClick={() => addEmptyPage(page.id, "after")}
-          className="bg-white border p-1 rounded shadow hover:bg-gray-100"
-        >
-          <Plus size={14} />
-        </button>
-        <button
-          onClick={() => deletePage(page.id)}
-          className="bg-red-500 text-white p-1 rounded shadow hover:bg-red-600"
-        >
-          <Trash2 size={14} />
-        </button>
+      <div className="absolute bottom-0 left-0 flex justify-between z-10 p-6 w-full px-1 opacity-0 transition duration-300 group-hover:opacity-100 bg-gradient-to-t from-gray-300 to-transparent">
+        <TooltipWrapper content={<I18n value="Rotate" />}>
+          <button
+            onClick={() => rotatePage(page.id)}
+            className="bg-white border p-1 rounded shadow-lg hover:bg-gray-100"
+          >
+            <RotateCcw size={14} />
+          </button>
+        </TooltipWrapper>
+
+        <TooltipWrapper content={<I18n value="Duplicate" />}>
+          <button
+            onClick={() => clonePage(page.id)}
+            className="bg-white border p-1 rounded shadow hover:bg-gray-100"
+          >
+            <Copy size={14} />
+          </button>
+        </TooltipWrapper>
+
+        <TooltipWrapper content={<I18n value="Add Empty" />}>
+          <button
+            onClick={() => addEmptyPage(page.id, "after")}
+            className="bg-white border p-1 rounded shadow hover:bg-gray-100"
+          >
+            <Plus size={14} />
+          </button>
+        </TooltipWrapper>
+
+        <TooltipWrapper content={<I18n value="Delete" />}>
+          <button
+            onClick={() => deletePage(page.id)}
+            className="bg-red-500 text-white p-1 rounded shadow hover:bg-red-600"
+          >
+            <Trash2 size={14} />
+          </button>
+        </TooltipWrapper>
       </div>
 
       {/* Page image */}
@@ -114,10 +124,10 @@ export const SortableItem = ({
         />
       </label>
 
-      {/* Footer: file name + index */}
-      <label className="absolute bottom-0 left-0 bg-white px-2 py-1 text-xs border-t flex gap-1 h-[40px] w-full line-clamp-2 overflow-hidden">
-        <div>{page.file.name}</div>
-        <div className="flex items-end text-gray-400">{page.pageIndex + 1}</div>
+      {/* Header: file name */}
+      <label className="absolute bottom-[0px] left-[0px] w-full bg-white px-2 py-1 flex items-center gap-1 justify-between">
+        <FileBadge f={page.file} />
+        {index >= 0 && <span>{index + 1}</span>}
       </label>
     </div>
   );

@@ -63,3 +63,34 @@ export async function extractPagesFromPdf(
   // Xuất ra file PDF (Uint8Array)
   return await newDoc.save();
 }
+
+
+import { StandardFonts, rgb } from "pdf-lib";
+
+/**
+ * Tạo file PDF có 1 trang trắng
+ * @param width chiều rộng trang (mặc định 595 - A4)
+ * @param height chiều cao trang (mặc định 842 - A4)
+ */
+export async function createEmptyPdfPage(width = 595, height = 842): Promise<Uint8Array> {
+  // Tạo document mới
+  const pdfDoc = await PDFDocument.create();
+
+  // Add 1 page trắng
+  const page = pdfDoc.addPage([width, height]);
+
+  // (Không cần vẽ gì, để trắng)
+  // Nếu bạn muốn debug thì có thể viết chữ "Empty Page"
+  const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
+  page.drawText("Empty Page", {
+    x: width / 2 - 40,
+    y: height / 2,
+    size: 12,
+    font,
+    color: rgb(0.5, 0.5, 0.5),
+  });
+
+  // Xuất ra mảng byte
+  const pdfBytes = await pdfDoc.save();
+  return pdfBytes;
+}

@@ -12,7 +12,7 @@ const DefaultLayout = ({ children }: { children: React.ReactNode }) => (
       <Sidebar />
       <main
         className="flex-1 duration-300"
-        style={{ marginLeft: "0" }}
+        style={{ marginLeft: "0", width: `calc(100vw - 100px)` }}
       >
         {children}
       </main>
