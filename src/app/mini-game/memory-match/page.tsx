@@ -1,6 +1,6 @@
 "use client";
-import React, { useState, useEffect } from 'react';
 import { I18n } from "@/components/utils/I18n";
+import React, { useEffect, useState } from 'react';
 
 interface Card {
   id: number;
@@ -73,7 +73,7 @@ const MemoryMatch: React.FC = () => {
   // Initialize game on mount
   useEffect(() => {
     initializeGame();
-  }, []);
+  });
 
   return (
     <div className="flex flex-col items-center justify-center pt-10 px-4">

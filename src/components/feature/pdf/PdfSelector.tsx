@@ -1,20 +1,21 @@
 "use client";
 
 import { extractImagesFromPdf } from "@/helpers/pdf";
+import { PdfJsLib, usePDFJS } from "@/hooks/usePDFJS";
 import {
-    closestCenter,
-    DndContext,
-    DragEndEvent,
-    KeyboardSensor,
-    PointerSensor,
-    useSensor,
-    useSensors,
+  closestCenter,
+  DndContext,
+  DragEndEvent,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
 } from "@dnd-kit/core";
 import {
-    arrayMove,
-    rectSortingStrategy,
-    SortableContext,
-    sortableKeyboardCoordinates,
+  arrayMove,
+  rectSortingStrategy,
+  SortableContext,
+  sortableKeyboardCoordinates,
 } from "@dnd-kit/sortable";
 import { Loader, Trash2 } from "lucide-react";
 import { PDFDocument } from "pdf-lib";
@@ -28,6 +29,11 @@ export default function PdfPageSelector() {
   const [downloadUrl, setDownloadUrl] = useState<string | null>(null);
   const [exporting, setExporting] = useState<boolean>(false);
   const [uploading, setUploading] = useState<boolean>(false);
+  const [pdfjs, setPdfjs] = useState<PdfJsLib>();
+
+  usePDFJS(async (pdfjsLib: PdfJsLib) => {
+    setPdfjs(pdfjsLib);
+  });
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -37,7 +43,7 @@ export default function PdfPageSelector() {
   const handleFiles = async (fs: File[]) => {
     setUploading(true);
     for (const f of fs) {
-      const imgs = await extractImagesFromPdf(f);
+      const imgs = await extractImagesFromPdf(f, pdfjs);
       const previews = imgs.map((src, idx) => ({
         id: `${f.name}-${idx}-${Math.random().toFixed(5)}`,
         src,

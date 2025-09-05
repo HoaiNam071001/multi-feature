@@ -1,9 +1,18 @@
 // lib/extractImages.ts
-import pdfjsLib from "@/lib/pdfjs";
+import { PdfJsLib } from "@/hooks/usePDFJS";
 import { PDFDocument } from "pdf-lib";
 import type { RenderParameters } from "pdfjs-dist/types/src/display/api";
 
-export async function extractImagesFromPdf(file: File): Promise<string[]> {
+export async function extractImagesFromPdf(
+  file: File,
+  pdfjsLib: PdfJsLib | undefined
+): Promise<string[]> {
+  if (!pdfjsLib) return [];
+  if (typeof window === "undefined") {
+    console.warn("extractImagesFromPdf cannot run on server-side");
+    return [];
+  }
+  
   const pdfData = await file.arrayBuffer();
   const pdf = await pdfjsLib.getDocument({ data: pdfData }).promise;
 
@@ -21,8 +30,8 @@ export async function extractImagesFromPdf(file: File): Promise<string[]> {
     const renderContext: RenderParameters = {
       canvasContext: ctx,
       viewport,
-      canvas,              // 👈 thêm canvas (bắt buộc trong v4)
-      intent: "display",   // tuỳ chọn nhưng nên có
+      canvas, // 👈 thêm canvas (bắt buộc trong v4)
+      intent: "display", // tuỳ chọn nhưng nên có
     };
 
     await page.render(renderContext).promise;
@@ -33,8 +42,10 @@ export async function extractImagesFromPdf(file: File): Promise<string[]> {
   return images;
 }
 
-
-export async function extractPagesFromPdf(file: File, pageNumbers: number[]): Promise<Uint8Array> {
+export async function extractPagesFromPdf(
+  file: File,
+  pageNumbers: number[]
+): Promise<Uint8Array> {
   const pdfData = await file.arrayBuffer();
 
   // Load PDF gốc
@@ -45,7 +56,7 @@ export async function extractPagesFromPdf(file: File, pageNumbers: number[]): Pr
 
   // Duyệt danh sách trang
   for (const pageNumber of pageNumbers) {
-    const [copiedPage] = await newDoc.copyPages(srcDoc, [pageNumber - 1]); 
+    const [copiedPage] = await newDoc.copyPages(srcDoc, [pageNumber - 1]);
     newDoc.addPage(copiedPage);
   }
 

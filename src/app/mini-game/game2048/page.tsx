@@ -1,6 +1,6 @@
 "use client";
-import React, { useState, useEffect } from 'react';
 import { I18n } from "@/components/utils/I18n";
+import React, { useEffect, useState } from 'react';
 
 type Board = number[][];
 
@@ -68,7 +68,7 @@ const Game2048: React.FC = () => {
     let moved = false;
     let scoreIncrement = 0;
     const newBoard = board.map(row => {
-      let newRow = row.filter(val => val !== 0);
+      const newRow = row.filter(val => val !== 0);
       for (let i = 0; i < newRow.length - 1; i++) {
         if (newRow[i] === newRow[i + 1]) {
           newRow[i] *= 2;

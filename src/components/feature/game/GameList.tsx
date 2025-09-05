@@ -1,15 +1,12 @@
-import React from "react";
-import { I18n } from "@/components/utils/I18n";
-import { RouterPath } from "@/models/router";
-import FeatureGrid from "@/components/common/FeatureGrid";
 import { FeatureItem } from "@/components/common/FeatureCard";
+import FeatureGrid from "@/components/common/FeatureGrid";
+import { RouterPath } from "@/models/router";
 import {
-  Gamepad2,
-  Puzzle,
   Brain,
-  Hash,
   Crown,
-  Trophy,
+  Hash,
+  Puzzle,
+  Trophy
 } from "lucide-react";
 
 export const items: FeatureItem[] = [

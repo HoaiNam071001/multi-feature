@@ -1,3 +1,5 @@
+"use client";
+
 import { Checkbox } from "@/components/ui/checkbox";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
