@@ -1,5 +1,7 @@
 "use client";
 
+import { useLoading } from "@/components/layout/Content-wrapper";
+import I18n from "@/components/utils/I18n";
 import { extractImagesFromPdf } from "@/helpers/pdf";
 import { PdfJsLib, usePDFJS } from "@/hooks/usePDFJS";
 import {
@@ -17,19 +19,28 @@ import {
   SortableContext,
   sortableKeyboardCoordinates,
 } from "@dnd-kit/sortable";
-import { Loader, Trash2 } from "lucide-react";
-import { PDFDocument } from "pdf-lib";
+import {
+  CheckSquare,
+  FileText,
+  Redo2,
+  RotateCcw,
+  RotateCw,
+  Square,
+  Trash2,
+  Undo2,
+} from "lucide-react";
 import { useState } from "react";
+import PdfExportActions from "./PdfExportActions";
 import PdfUploadZone from "./PdfUploadZone";
 import { PagePreview, SortableItem } from "./SortableItem";
 
 export default function PdfPageSelector() {
   const [images, setImages] = useState<PagePreview[]>([]);
   const [files, setFiles] = useState<File[]>([]);
-  const [downloadUrl, setDownloadUrl] = useState<string | null>(null);
-  const [exporting, setExporting] = useState<boolean>(false);
-  const [uploading, setUploading] = useState<boolean>(false);
+  const { setLoading } = useLoading();
   const [pdfjs, setPdfjs] = useState<PdfJsLib>();
+  const [history, setHistory] = useState<PagePreview[][]>([]);
+  const [future, setFuture] = useState<PagePreview[][]>([]);
 
   usePDFJS(async (pdfjsLib: PdfJsLib) => {
     setPdfjs(pdfjsLib);
@@ -40,188 +51,308 @@ export default function PdfPageSelector() {
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
   );
 
+  // ---- Undo/Redo helpers ----
+  const pushHistory = (newImages: PagePreview[]) => {
+    setHistory((h) => [...h, images]);
+    setFuture([]);
+    setImages(newImages);
+  };
+
+  const undo = () => {
+    if (history.length > 0) {
+      const prev = history[history.length - 1];
+      setHistory((h) => h.slice(0, -1));
+      setFuture((f) => [images, ...f]);
+      setImages(prev);
+    }
+  };
+
+  const redo = () => {
+    if (future.length > 0) {
+      const next = future[0];
+      setFuture((f) => f.slice(1));
+      setHistory((h) => [...h, images]);
+      setImages(next);
+    }
+  };
+
+  // ---- File handling ----
   const handleFiles = async (fs: File[]) => {
-    setUploading(true);
+    setLoading(true);
     for (const f of fs) {
       const imgs = await extractImagesFromPdf(f, pdfjs);
-      const previews = imgs.map((src, idx) => ({
+      const previews: PagePreview[] = imgs.map((src, idx) => ({
         id: `${f.name}-${idx}-${Math.random().toFixed(5)}`,
         src,
         file: f,
         pageIndex: idx,
-        selected: true, // auto chọn khi upload
+        selected: true,
+        rotation: 0,
+        deleted: false,
       }));
       setImages((prev) => [...prev, ...previews]);
       setFiles((prev) => [...prev, f]);
     }
-    setUploading(false);
-  };
-
-  const togglePage = (id: string) => {
-    setImages((prev) =>
-      prev.map((p) => (p.id === id ? { ...p, selected: !p.selected } : p))
-    );
-  };
-
-  const deletePage = (id: string) => {
-    setImages((prev) => prev.filter((p) => p.id !== id));
-  };
-
-  const selectAll = () => {
-    setImages((prev) => prev.map((p) => ({ ...p, selected: true })));
-  };
-
-  const deselectAll = () => {
-    setImages((prev) => prev.map((p) => ({ ...p, selected: false })));
-  };
-
-  const deleteSelectedPages = () => {
-    setImages((prev) => prev.filter((p) => !p.selected));
+    setLoading(false);
   };
 
   const deleteFile = (fileName: string) => {
     setFiles((prev) => prev.filter((f) => f.name !== fileName));
-    setImages((prev) => prev.filter((p) => p.file.name !== fileName));
+    pushHistory(images.filter((p) => p.file.name !== fileName));
   };
 
+  const selectAllFile = (fileName: string) =>
+    pushHistory(
+      images.map((p) =>
+        p.file.name === fileName ? { ...p, selected: true } : p
+      )
+    );
+
+  const deselectAllFile = (fileName: string) =>
+    pushHistory(
+      images.map((p) =>
+        p.file.name === fileName ? { ...p, selected: false } : p
+      )
+    );
+
+  // ---- Page actions ----
+  const togglePage = (id: string) =>
+    pushHistory(
+      images.map((p) => (p.id === id ? { ...p, selected: !p.selected } : p))
+    );
+
+  const deletePage = (id: string) => {
+    pushHistory(images.map((p) => (p.id === id ? { ...p, deleted: true } : p)));
+  };
+
+  const selectAll = () => {
+    pushHistory(images.map((p) => (p.deleted ? p : { ...p, selected: true })));
+  };
+
+  const deselectAll = () => {
+    pushHistory(images.map((p) => (p.deleted ? p : { ...p, selected: false })));
+  };
+  const deleteSelectedPages = () => {
+    pushHistory(images.map((p) => (p.selected ? { ...p, deleted: true } : p)));
+  };
+
+  const rotateSelected = () =>
+    pushHistory(
+      images.map((p) =>
+        p.selected ? { ...p, rotation: ((p.rotation ?? 0) + 90) % 360 } : p
+      )
+    );
+
+  const rotateAll = () =>
+    pushHistory(
+      images.map((p) => ({
+        ...p,
+        rotation: ((p.rotation ?? 0) + 90) % 360,
+      }))
+    );
+
+  const clonePage = (id: string) => {
+    const idx = images.findIndex((p) => p.id === id);
+    if (idx === -1) return;
+    const page = images[idx];
+    const newPage: PagePreview = {
+      ...page,
+      id: `${page.id}-clone-${Date.now()}`,
+      selected: false,
+    };
+    const newImages = [...images];
+    newImages.splice(idx + 1, 0, newPage);
+    pushHistory(newImages);
+  };
+
+  const addEmptyPage = (id: string, pos: "before" | "after") => {
+    const idx = images.findIndex((p) => p.id === id);
+    if (idx === -1) return;
+    const empty: PagePreview = {
+      id: `empty-${Date.now()}`,
+      src: "",
+      file: images[idx].file,
+      pageIndex: -1,
+      selected: false,
+      isEmpty: true,
+    };
+    const newImages = [...images];
+    newImages.splice(pos === "before" ? idx : idx + 1, 0, empty);
+    pushHistory(newImages);
+  };
+
+  const rotatePage = (id: string) =>
+    pushHistory(
+      images.map((p) =>
+        p.id === id ? { ...p, rotation: ((p.rotation ?? 0) + 90) % 360 } : p
+      )
+    );
+
+  // ---- Drag & Drop ----
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
     if (over && active.id !== over.id) {
-      setImages((items) => {
-        const oldIndex = items.findIndex((i) => i.id === active.id);
-        const newIndex = items.findIndex((i) => i.id === over.id);
-        return arrayMove(items, oldIndex, newIndex);
-      });
+      const oldIndex = images.findIndex((i) => i.id === active.id);
+      const newIndex = images.findIndex((i) => i.id === over.id);
+      pushHistory(arrayMove(images, oldIndex, newIndex));
     }
-  };
-
-  const handleExport = async () => {
-    const selected = images.filter((p) => p.selected);
-    if (selected.length === 0) return;
-
-    setExporting(true);
-    const newDoc = await PDFDocument.create();
-    for (const sel of selected) {
-      const pdfData = await sel.file.arrayBuffer();
-      const srcDoc = await PDFDocument.load(pdfData);
-      const [copiedPage] = await newDoc.copyPages(srcDoc, [sel.pageIndex]);
-      newDoc.addPage(copiedPage);
-    }
-
-    const newPdfBytes = await newDoc.save();
-    const blob = new Blob([newPdfBytes as unknown as ArrayBuffer], {
-      type: "application/pdf",
-    });
-    const url = URL.createObjectURL(blob);
-    setDownloadUrl(url);
-    setExporting(false);
   };
 
   return (
     <div className="p-4 relative">
-      <div className="absolute top-[200px] left-1/2 -translate-x-1/2">
-        {uploading && <Loader className="animate-spin w-20 h-20 text-gray-500" />}
-      </div>
-      {/* ✅ Upload Zone component */}
-      <div className="mb-4 mx-auto max-w-[700px]">
-        <PdfUploadZone onFiles={handleFiles} />
-      </div>
+      {/* Upload */}
+      <div className="mt-4 space-y-2">
+        <div className="font-bold flex items-center gap-2">
+          <span>
+            <I18n value={"Upload PDF files"} />:
+          </span>
+          <PdfUploadZone onFiles={handleFiles} />
+        </div>
 
-      {files.length > 0 && (
-        <div className="mt-4 space-y-2">
-          <h3 className="font-bold">Uploaded Files</h3>
-          <div className="flex flex-wrap gap-2">
-            {files.map((f) => (
+        {/* File list with actions */}
+        <div className="flex flex-col gap-3">
+          {files?.map((f) => {
+            const filePages = images.filter((p) => p.file.name === f.name);
+            const total = filePages.length; // tổng (kể cả deleted)
+            const selected = filePages.filter(
+              (p) => p.selected && !p.deleted
+            ).length;
+            const deleted = filePages.filter((p) => p.deleted).length;
+
+            return (
               <div
                 key={f.name}
-                className="flex items-center gap-2 justify-between border rounded px-3 py-1 max-w-[300px]"
+                className="border rounded p-2 flex flex-col gap-1 max-w-[400px]"
               >
-                <span className="truncate">{f.name}</span>
-                <button
-                  className="text-red-500 hover:text-red-700 flex items-center gap-1"
-                  onClick={() => deleteFile(f.name)}
-                >
-                  <Trash2 size={16} />
-                </button>
+                {/* Dòng 1: file name */}
+                <div className="flex items-center font-semibold gap-2">
+                  <FileText size={16} /> {f.name}
+                </div>
+                {/* Dòng 2: actions */}
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => selectAllFile(f.name)}
+                    className="px-2 py-1 bg-gray-200 rounded flex items-center gap-1"
+                  >
+                    <CheckSquare size={14} /> Select All
+                  </button>
+                  <button
+                    onClick={() => deselectAllFile(f.name)}
+                    className="px-2 py-1 bg-gray-200 rounded flex items-center gap-1"
+                  >
+                    <Square size={14} /> Deselect
+                  </button>
+                  <button
+                    onClick={() => deleteFile(f.name)}
+                    className="px-2 py-1 bg-red-500 text-white rounded flex items-center gap-1"
+                  >
+                    <Trash2 size={14} /> Remove
+                  </button>
+                </div>
+                {/* Dòng 3: info */}
+                <div className="text-xs text-gray-600 flex gap-3">
+                  <span>Total: {total}</span>
+                  <span>Selected: {selected}</span>
+                  <span>Deleted: {deleted}</span>
+                </div>
               </div>
-            ))}
-          </div>
+            );
+          })}
+          {files.length === 0 && (
+            <div className="flex items-center gap-2 justify-between border rounded px-3 py-1 max-w-[300px]">
+              <span className="truncate">No files uploaded</span>
+            </div>
+          )}
         </div>
-      )}
+      </div>
 
-      {images.length > 0 && (
-        <>
-          <h2 className="mt-4 font-bold">Reorder & Select Pages</h2>
+      <>
+        <h2 className="mt-4 font-bold">Reorder & Select Pages</h2>
 
-          {/* Bulk actions */}
-          <div className="flex gap-2 my-2">
-            <button
-              className="px-3 py-1 bg-gray-200 rounded"
-              onClick={selectAll}
-            >
-              Select All
-            </button>
-            <button
-              className="px-3 py-1 bg-gray-200 rounded"
-              onClick={deselectAll}
-            >
-              Deselect All
-            </button>
-            <button
-              className="px-3 py-1 bg-red-500 text-white rounded"
-              onClick={deleteSelectedPages}
-              disabled={!images.some((p) => p.selected)}
-            >
-              Delete Selected
-            </button>
-          </div>
-
-          {/* Sortable grid */}
-          <DndContext
-            sensors={sensors}
-            collisionDetection={closestCenter}
-            onDragEnd={handleDragEnd}
+        {/* Bulk + Global actions */}
+        <div className="flex flex-wrap gap-2 mt-2 mb-4">
+          <button
+            className="px-3 py-1 bg-gray-200 rounded"
+            disabled={images?.length === 0}
+            onClick={selectAll}
           >
-            <SortableContext
-              items={images.map((p) => p.id)}
-              strategy={rectSortingStrategy}
-            >
-              <div className="grid grid-cols-8 gap-4 mt-2">
-                {images.map((page) => (
+            Select All
+          </button>
+          <button
+            className="px-3 py-1 bg-gray-200 rounded"
+            disabled={images?.length === 0}
+            onClick={deselectAll}
+          >
+            Deselect All
+          </button>
+          <button
+            className="px-3 py-1 bg-red-500 text-white rounded disabled:opacity-50"
+            onClick={deleteSelectedPages}
+            disabled={images?.length === 0 || !images.some((p) => p.selected)}
+          >
+            Delete Selected
+          </button>
+          <button
+            className="px-3 py-1 bg-gray-200 rounded flex items-center gap-1"
+            onClick={rotateSelected}
+            disabled={!images.some((p) => p.selected)}
+          >
+            <RotateCcw size={14} /> Rotate Selected
+          </button>
+          <button
+            className="px-3 py-1 bg-gray-200 rounded flex items-center gap-1"
+            onClick={rotateAll}
+            disabled={images?.length === 0}
+          >
+            <RotateCw size={14} /> Rotate All
+          </button>
+          <button
+            className="px-3 py-1 bg-gray-200 rounded flex items-center gap-1"
+            onClick={undo}
+            disabled={history.length === 0}
+          >
+            <Undo2 size={14} /> Undo
+          </button>
+          <button
+            className="px-3 py-1 bg-gray-200 rounded flex items-center gap-1"
+            onClick={redo}
+            disabled={future.length === 0}
+          >
+            <Redo2 size={14} /> Redo
+          </button>
+        </div>
+
+        {/* Sortable grid */}
+        <DndContext
+          sensors={sensors}
+          collisionDetection={closestCenter}
+          onDragEnd={handleDragEnd}
+        >
+          <SortableContext
+            items={images.filter((p) => !p.deleted).map((p) => p.id)}
+            strategy={rectSortingStrategy}
+          >
+            <div className="grid grid-cols-8 gap-4 mt-2">
+              {images
+                .filter((p) => !p.deleted)
+                ?.map((page) => (
                   <SortableItem
                     key={page.id}
                     page={page}
                     toggle={togglePage}
                     deletePage={deletePage}
+                    rotatePage={rotatePage}
+                    clonePage={clonePage}
+                    addEmptyPage={addEmptyPage}
                   />
                 ))}
-              </div>
-            </SortableContext>
-          </DndContext>
+            </div>
+          </SortableContext>
+        </DndContext>
 
-          {/* Export */}
-          <div className="mt-4 flex gap-2">
-            <button
-              onClick={handleExport}
-              disabled={!images.some((p) => p.selected) || exporting}
-              className="px-4 py-2 bg-blue-500 text-white rounded disabled:bg-gray-400 flex items-center gap-2"
-            >
-              {exporting && <Loader className="animate-spin" />}
-              Export Selected Pages
-            </button>
-
-            {downloadUrl && (
-              <a
-                href={downloadUrl}
-                download="merged.pdf"
-                className="px-4 py-2 bg-green-500 text-white rounded"
-              >
-                Download
-              </a>
-            )}
-          </div>
-        </>
-      )}
+        {/* Export */}
+        <PdfExportActions images={images} />
+      </>
     </div>
   );
 }

@@ -1,3 +1,4 @@
+import { LoadingProvider } from "@/components/layout/Content-wrapper";
 import DefaultLayout from "@/components/layout/Default";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import type { Metadata } from "next";
@@ -31,7 +32,9 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <TooltipProvider>
-          <DefaultLayout>{children}</DefaultLayout>
+          <LoadingProvider>
+            <DefaultLayout>{children}</DefaultLayout>
+          </LoadingProvider>
         </TooltipProvider>
         <ToastContainer />
       </body>
