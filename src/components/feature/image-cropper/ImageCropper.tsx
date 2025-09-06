@@ -190,8 +190,8 @@ export default function ImageCropper() {
       const sw2 = maxX - minX;
       const sh2 = maxY - minY;
 
-      let outputW = Math.round(imgRef.current.naturalWidth * zoom);
-      let outputH = Math.round(imgRef.current.naturalHeight * zoom);
+      let outputW = Math.round(sw * zoom);
+      let outputH = Math.round(sh * zoom);
       canvas.width = outputW;
       canvas.height = outputH;
 
