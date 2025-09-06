@@ -126,42 +126,99 @@ export default function ImageCropper() {
 
   const filterString = `brightness(${brightness}%) contrast(${contrast}%) saturate(${saturate}%)`;
 
+  function rotatePoint(
+    x: number,
+    y: number,
+    cx: number,
+    cy: number,
+    angle: number
+  ) {
+    const rad = (angle * Math.PI) / 180;
+    const cos = Math.cos(rad);
+    const sin = Math.sin(rad);
+
+    // tịnh tiến về gốc
+    const dx = x - cx;
+    const dy = y - cy;
+
+    // xoay
+    const rx = dx * cos - dy * sin;
+    const ry = dx * sin + dy * cos;
+
+    // dịch về lại
+    return { x: rx + cx, y: ry + cy };
+  }
+
   const generateCroppedImage = useCallback(
     async (toFileName?: string) => {
       if (!imgRef.current || !pixelCrop) return null;
       const canvas = document.createElement("canvas");
-      const scaleX = imgRef.current.naturalWidth / imgRef.current.width;
-      const scaleY = imgRef.current.naturalHeight / imgRef.current.height;
-
-      const sx = pixelCrop.x;
-      const sy = pixelCrop.y;
-      const sw = pixelCrop.width;
-      const sh = pixelCrop.height;
-
-      const outputW = Math.round(sw * zoom);
-      const outputH = Math.round(sh * zoom);
-      canvas.width = outputW;
-      canvas.height = outputH;
-
       const ctx = canvas.getContext("2d");
       if (!ctx) return null;
 
+      const scaleX = imgRef.current.naturalWidth / imgRef.current.width;
+      const scaleY = imgRef.current.naturalHeight / imgRef.current.height;
+
+      const sx = pixelCrop.x * scaleX;
+      const sy = pixelCrop.y * scaleY;
+      const sw = pixelCrop.width * scaleX;
+      const sh = pixelCrop.height * scaleY;
+
+      const centerX = imgRef.current.naturalWidth / 2;
+      const centerY = imgRef.current.naturalHeight / 2;
+
+      // 4 góc crop box gốc
+      const topLeft = rotatePoint(sx, sy, centerX, centerY, rotation);
+      const topRight = rotatePoint(sx + sw, sy, centerX, centerY, rotation);
+      const bottomLeft = rotatePoint(sx, sy + sh, centerX, centerY, rotation);
+      const bottomRight = rotatePoint(
+        sx + sw,
+        sy + sh,
+        centerX,
+        centerY,
+        rotation
+      );
+
+      // lấy bounding box mới sau khi xoay
+      const minX = Math.min(topLeft.x, topRight.x, bottomLeft.x, bottomRight.x);
+      const maxX = Math.max(topLeft.x, topRight.x, bottomLeft.x, bottomRight.x);
+      const minY = Math.min(topLeft.y, topRight.y, bottomLeft.y, bottomRight.y);
+      const maxY = Math.max(topLeft.y, topRight.y, bottomLeft.y, bottomRight.y);
+
+      const sx2 = minX;
+      const sy2 = minY;
+      const sw2 = maxX - minX;
+      const sh2 = maxY - minY;
+
+      let outputW = Math.round(pixelCrop.width * zoom);
+      let outputH = Math.round(pixelCrop.height * zoom);
+      canvas.width = outputW;
+      canvas.height = outputH;
+
       ctx.filter = filterString;
       ctx.save();
+
+      // move origin to center of canvas
       ctx.translate(canvas.width / 2, canvas.height / 2);
-      ctx.rotate((rotation * Math.PI) / 180);
+
+      // apply rotation
+      ctx.rotate(-(rotation * Math.PI) / 180);
+
+      // apply flipping
       ctx.scale(flipH ? -1 : 1, flipV ? -1 : 1);
 
+      // move image back so crop aligns correctly
+      const rightAngle = Math.abs(rotation % 180) === 90;
       ctx.drawImage(
         imgRef.current,
-        sx * scaleX,
-        sy * scaleY,
-        sw * scaleX,
-        sh * scaleY,
-        -canvas.width / 2,
-        -canvas.height / 2,
-        canvas.width,
-        canvas.height
+        flipH ? imgRef.current.naturalWidth - sx2 - sw2 : sx2,
+        flipV ? imgRef.current.naturalHeight - sy2 - sh2 : sy2,
+        sw2,
+        sh2,
+        -(rightAngle ? outputH : outputW) / 2,
+        -(rightAngle ? outputW : outputH) / 2,
+        rightAngle ? outputH : outputW,
+        rightAngle ? outputW : outputH
       );
 
       ctx.restore();
@@ -177,8 +234,8 @@ export default function ImageCropper() {
       if (previewCanvasRef.current) {
         const pctx = previewCanvasRef.current.getContext("2d");
         if (pctx) {
-          previewCanvasRef.current.width = canvas.width;
-          previewCanvasRef.current.height = canvas.height;
+          previewCanvasRef.current.width = Math.min(300, canvas.width);
+          previewCanvasRef.current.height = Math.min(300, canvas.height);
           pctx.clearRect(
             0,
             0,
@@ -205,23 +262,8 @@ export default function ImageCropper() {
     [filterString, flipH, flipV, pixelCrop, rotation, zoom]
   );
 
-  // useEffect(() => {
-  //   if (!pixelCrop) return;
-  //   generateCroppedImage();
-  // }, [
-  //   pixelCrop,
-  //   rotation,
-  //   flipH,
-  //   flipV,
-  //   zoom,
-  //   brightness,
-  //   contrast,
-  //   saturate,
-  //   generateCroppedImage,
-  // ]);
-
-  // const rotate90 = () => setRotation((r) => (r + 90) % 360);
-  // const rotate180 = () => setRotation((r) => (r + 180) % 360);
+  const rotate90 = () => setRotation((r) => (r + 90) % 360);
+  const rotate180 = () => setRotation((r) => (r + 180) % 360);
 
   const reset = () => {
     if (imgRef.current) {
@@ -317,7 +359,7 @@ export default function ImageCropper() {
                   ref={imgRef}
                   onLoad={onImageLoad}
                   style={{
-                    transform: `scale(${zoom}) rotate(${rotation}deg) scaleX(${flipH ? -1 : 1}) scaleY(${flipV ? -1 : 1})`,
+                    transform: `scale(${zoom}) rotate(-${rotation}deg) scaleX(${flipH ? -1 : 1}) scaleY(${flipV ? -1 : 1})`,
                     filter: filterString,
                     maxWidth: "100%",
                     maxHeight: "75vh",
@@ -335,18 +377,6 @@ export default function ImageCropper() {
 
         <div className="w-80 flex-shrink-0 p-3 border rounded bg-white">
           <h4 className="font-semibold mb-2">Controls</h4>
-
-          {/* <div className="mb-2">
-            <label className="block text-sm">Zoom: {zoom.toFixed(2)}x</label>
-            <input
-              type="range"
-              min={0.2}
-              max={3}
-              step={0.01}
-              value={zoom}
-              onChange={(e) => setZoom(Number(e.target.value))}
-            />
-          </div> */}
 
           <div className="mb-2">
             <Label className="mb-1 text-sm">Aspect Ratio</Label>
@@ -367,15 +397,10 @@ export default function ImageCropper() {
           <div className="flex gap-2 mb-2">
             <Button onClick={() => setFlipH((v) => !v)}>Flip H</Button>
             <Button onClick={() => setFlipV((v) => !v)}>Flip V</Button>
-            {/* <button className="btn px-3 py-1 border rounded" onClick={rotate90}>
-              Rotate 90°
-            </button>
-            <button
-              className="btn px-3 py-1 border rounded"
-              onClick={rotate180}
-            >
-              Rotate 180°
-            </button> */}
+          </div>
+          <div className="flex gap-2 mb-2">
+            <Button onClick={rotate90}>Rotate 90°</Button>
+            <Button onClick={rotate180}>Rotate 180°</Button>
           </div>
 
           <div className="mb-2">
