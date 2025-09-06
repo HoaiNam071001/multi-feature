@@ -190,8 +190,8 @@ export default function ImageCropper() {
       const sw2 = maxX - minX;
       const sh2 = maxY - minY;
 
-      let outputW = Math.round(pixelCrop.width * zoom);
-      let outputH = Math.round(pixelCrop.height * zoom);
+      let outputW = Math.round(imgRef.current.naturalWidth * zoom);
+      let outputH = Math.round(imgRef.current.naturalHeight * zoom);
       canvas.width = outputW;
       canvas.height = outputH;
 
@@ -211,7 +211,7 @@ export default function ImageCropper() {
       const rightAngle = Math.abs(rotation % 180) === 90;
       ctx.drawImage(
         imgRef.current,
-        flipH ? imgRef.current.naturalWidth - sx2 - sw2 : sx2,
+        flipH ? imgRef.current.naturalWidth - sx2 - sw2 : sx2 ,
         flipV ? imgRef.current.naturalHeight - sy2 - sh2 : sy2,
         sw2,
         sh2,
@@ -234,8 +234,8 @@ export default function ImageCropper() {
       if (previewCanvasRef.current) {
         const pctx = previewCanvasRef.current.getContext("2d");
         if (pctx) {
-          previewCanvasRef.current.width = Math.min(300, canvas.width);
-          previewCanvasRef.current.height = Math.min(300, canvas.height);
+          previewCanvasRef.current.width = canvas.width;
+          previewCanvasRef.current.height = canvas.height;
           pctx.clearRect(
             0,
             0,
