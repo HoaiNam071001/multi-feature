@@ -6,4 +6,5 @@ export enum RouterPath {
   PROVINCE_LOOKUP = "/province-lookup",
   TEXT_PROCESSOR = "/text-processor",
   PDF = "/pdf",
+  TEXT_COMPARE = "/text-compare",
 }

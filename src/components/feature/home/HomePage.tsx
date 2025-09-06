@@ -26,11 +26,18 @@ export const appFeatures: FeatureItem[] = [
       "Xử lý văn bản với các tính năng như chuyển đổi thường xuyên, xóa ký tự đặc biệt, cắt ngắn văn bản, và nhiều hơn nữa",
   },
   {
-    name: "Trích Xuất Ảnh PDF",
+    name: "Quản Lý Trang PDF",
     url: RouterPath.PDF,
     icon: <FileImage />,
     description:
-      "Trích xuất và tải xuống tất cả các hình ảnh có trong tệp PDF một cách nhanh chóng và an toàn ngay trên trình duyệt.",
+      "Dễ dàng ghép, nối hoặc tách các trang trong tệp PDF với giao diện thân thiện, thao tác nhanh chóng và bảo mật ngay trên trình duyệt.",
+  },
+  {
+    name: "So Sánh Văn Bản",
+    url: RouterPath.TEXT_COMPARE,
+    icon: <FileText />,
+    description:
+      "So sánh hai đoạn văn bản để nhanh chóng nhận diện sự khác biệt, hỗ trợ phân biệt chữ hoa/thường và sử dụng regex, trực tiếp trên trình duyệt.",
   },
 ];
 
