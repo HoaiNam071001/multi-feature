@@ -39,6 +39,13 @@ export const appFeatures: FeatureItem[] = [
     description:
       "So sánh hai đoạn văn bản để nhanh chóng nhận diện sự khác biệt, hỗ trợ phân biệt chữ hoa/thường và sử dụng regex, trực tiếp trên trình duyệt.",
   },
+  {
+    name: "Crop Ảnh",
+    url: RouterPath.IMAGE_CROPPER,
+    icon: <FileImage />,
+    description:
+      "Cắt, xoay, lật, phóng to/thu nhỏ ảnh dễ dàng. Hỗ trợ xem trước, xuất ảnh và tùy chọn tỷ lệ cắt cho avatar, cover hoặc tự do.",
+  },
 ];
 
 const HomePage = () => {

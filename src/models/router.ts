@@ -7,4 +7,5 @@ export enum RouterPath {
   TEXT_PROCESSOR = "/text-processor",
   PDF = "/pdf",
   TEXT_COMPARE = "/text-compare",
+  IMAGE_CROPPER = "/image-cropper",
 }
