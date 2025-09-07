@@ -1,4 +1,4 @@
-// components/feature/text-proccessor/ResultPopup.tsx
+// components/feature/text-processor/ResultPopup.tsx
 "use client";
 
 import { Button } from "@/components/ui/button";
@@ -12,33 +12,55 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import I18n from "@/components/utils/I18n";
+import { useEffect, useState } from "react";
+
+interface ImagePreviewProps {
+  canvas: HTMLCanvasElement | undefined;
+  filterString: string;
+  generateCroppedImage: (toFileName?: string) => Promise<void>;
+}
 
 export const ImagePreview = ({
-  previewCanvasRef,
+  canvas,
+  filterString,
   generateCroppedImage,
-}: {
-  previewCanvasRef: React.RefObject<HTMLCanvasElement | null>;
-  generateCroppedImage: (toFileName?: string) => Promise<string | null>;
-}) => {
+}: ImagePreviewProps) => {
+  const [imageSrc, setImageSrc] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (canvas) {
+      const dataUrl = canvas.toDataURL("image/png");
+      setImageSrc(dataUrl);
+    }
+  }, [canvas]);
+
   return (
-    <Dialog>
+    <Dialog >
       <DialogTrigger asChild>
-        <Button variant={"secondary"} onClick={() => generateCroppedImage()}>
-          Preview
+        <Button variant="secondary" onClick={() => generateCroppedImage()}>
+          <I18n value="Preview" />
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[700px] h-[70vh] flex flex-col">
         <DialogHeader>
           <DialogTitle>
-            <I18n value={"Preview"} />
+            <I18n value="Preview" />
           </DialogTitle>
         </DialogHeader>
 
-        <div className="mt-2 h-[70vh]">
-          <canvas
-            ref={previewCanvasRef}
-            className="max-h-full max-w-full mt-2 border rounded bg-gray-100"
-          />
+        <div className="mt-2 max-h-[70vh] flex items-center justify-center overflow-auto">
+          {imageSrc ? (
+            <img
+              src={imageSrc}
+              alt="Preview"
+              className="max-h-full max-w-full border rounded bg-gray-100"
+              style={{ filter: filterString || "none" }} // Apply CSS filter
+            />
+          ) : (
+            <div className="flex h-full items-center justify-center text-gray-500">
+              <I18n value="No image available" />
+            </div>
+          )}
         </div>
 
         <DialogFooter className="mt-auto pt-4">

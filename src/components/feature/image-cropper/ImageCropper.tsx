@@ -11,6 +11,7 @@ import ReactCrop, {
   makeAspectCrop,
 } from "react-image-crop";
 import "react-image-crop/dist/ReactCrop.css";
+import { ImagePreview } from "./ImagePreview";
 
 function centerAspectCrop(
   mediaWidth: number,
@@ -47,7 +48,7 @@ export default function ImageCropper() {
   const [aspect, setAspect] = useState<number | undefined>(undefined);
   const [pixelCrop, setPixelCrop] = useState<PixelCrop | null>(null);
   const imgRef = useRef<HTMLImageElement | null>(null);
-  const previewCanvasRef = useRef<HTMLCanvasElement | null>(null);
+  const [canvas, setCanvas] = useState<HTMLCanvasElement>(); // base 64
 
   // transform state
   const [rotation, setRotation] = useState<number>(0);
@@ -68,6 +69,7 @@ export default function ImageCropper() {
     { label: "16:9 Cover", value: 16 / 9 },
     { label: "3:2", value: 3 / 2 },
     { label: "2:3", value: 2 / 3 },
+    { label: "3:4", value: 3 / 4 },
   ];
 
   const onSelectFile = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -151,10 +153,10 @@ export default function ImageCropper() {
 
   const generateCroppedImage = useCallback(
     async (toFileName?: string) => {
-      if (!imgRef.current || !pixelCrop) return null;
+      if (!imgRef.current || !pixelCrop) return;
       const canvas = document.createElement("canvas");
       const ctx = canvas.getContext("2d");
-      if (!ctx) return null;
+      if (!ctx) return;
 
       const scaleX = imgRef.current.naturalWidth / imgRef.current.width;
       const scaleY = imgRef.current.naturalHeight / imgRef.current.height;
@@ -223,41 +225,14 @@ export default function ImageCropper() {
 
       ctx.restore();
 
-      const dataUrl = canvas.toDataURL("image/png");
+      setCanvas(canvas);
       if (toFileName) {
+        const dataUrl = canvas.toDataURL("image/png");
         const link = document.createElement("a");
         link.download = toFileName;
         link.href = dataUrl;
         link.click();
       }
-
-      if (previewCanvasRef.current) {
-        const pctx = previewCanvasRef.current.getContext("2d");
-        if (pctx) {
-          previewCanvasRef.current.width = canvas.width;
-          previewCanvasRef.current.height = canvas.height;
-          pctx.clearRect(
-            0,
-            0,
-            previewCanvasRef.current.width,
-            previewCanvasRef.current.height
-          );
-          const tmpImg = new Image();
-          tmpImg.onload = () => {
-            pctx.filter = filterString;
-            pctx.drawImage(
-              tmpImg,
-              0,
-              0,
-              previewCanvasRef.current!.width,
-              previewCanvasRef.current!.height
-            );
-          };
-          tmpImg.src = dataUrl;
-        }
-      }
-
-      return dataUrl;
     },
     [filterString, flipH, flipV, pixelCrop, rotation, zoom]
   );
@@ -444,33 +419,12 @@ export default function ImageCropper() {
           </div>
 
           <div className="mb-2 flex gap-2">
-            <Button
-              variant={"secondary"}
-              onClick={() => generateCroppedImage()}
-            >
-              Preview
-            </Button>
-            {/* <ImagePreview
-              previewCanvasRef={previewCanvasRef}
+            <ImagePreview
+              canvas={canvas}
+              filterString={filterString}
               generateCroppedImage={generateCroppedImage}
-            /> */}
+            />
             <Button onClick={onSaveFile}>Save</Button>
-            {/* <button
-              className="px-3 py-1 border rounded"
-              onClick={() => generateCroppedImage()}
-            >
-              Export base64
-            </button> */}
-          </div>
-
-          <div className="mt-2">
-            <h5 className="text-sm font-medium">Preview</h5>
-            <div className="h-[180px] flex items-center justify-center">
-              <canvas
-                ref={previewCanvasRef}
-                className="max-h-full max-w-full mt-2 border rounded bg-gray-100"
-              />
-            </div>
           </div>
         </div>
       </div>
