@@ -1,7 +1,7 @@
 // Header Component
 
 import { HEADER_HEIGHT } from "@/models/layout";
-import { VenetianMask } from "lucide-react";
+import Image from "next/image";
 
 export const Header = () => (
   <header
@@ -10,7 +10,7 @@ export const Header = () => (
   >
     <div className="max-w-7xl w-full flex justify-between items-center">
       <h1 className="text-3xl font-extrabold tracking-tight">
-      <VenetianMask />
+        <Image src="/logo.svg" alt="Logo" width={30} height={40} />
       </h1>
 
     </div>
