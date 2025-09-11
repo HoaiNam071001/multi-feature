@@ -10,7 +10,7 @@ export const Header = () => (
   >
     <div className="max-w-7xl w-full flex justify-between items-center">
       <h1 className="text-3xl font-extrabold tracking-tight">
-        <Image src="/logo.svg" alt="Logo" width={30} height={40} />
+        <Image src="/logo.svg" alt="Logo" width={30} height={30} />
       </h1>
 
     </div>

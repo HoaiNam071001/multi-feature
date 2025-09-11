@@ -58,7 +58,7 @@ const HomePage = () => {
             Chào mừng đến với Trang Chủ
           </h1>
           <p className="text-xl mb-8 text-blue-100">
-            Khám phá các tính năng thú vị và trò chơi trí tuệ đa dạng
+            Khám phá các tính năng thú vị và đa dạng
           </p>
           <div className="w-32 h-1 bg-white mx-auto rounded-full"></div>
         </div>
