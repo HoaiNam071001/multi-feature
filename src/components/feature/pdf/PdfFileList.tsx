@@ -1,4 +1,5 @@
 // components/PdfFileList.tsx
+import UploadZone from "@/components/common/UploadZone";
 import { useLoading } from "@/components/layout/Content-wrapper";
 import { TooltipWrapper } from "@/components/ui/tooltip";
 import I18n from "@/components/utils/I18n";
@@ -8,7 +9,6 @@ import { PdfJsLib, usePDFJS } from "@/hooks/usePDFJS";
 import { CheckSquare, Square, Trash2 } from "lucide-react";
 import { SetStateAction, useState } from "react";
 import { v4 as uuidv4 } from "uuid";
-import PdfUploadZone from "./PdfUploadZone";
 import { PagePreview } from "./SortableItem";
 
 export interface FileInfo {
@@ -85,7 +85,13 @@ export default function PdfFileList({
         <span>
           <I18n value={"Upload PDF files"} />:
         </span>
-        <PdfUploadZone onFiles={handleFiles} />
+        <UploadZone
+          onFiles={handleFiles}
+          accept="application/pdf"
+          title="Upload PDF files"
+          description="Only PDF files are supported."
+          buttonLabel="Upload PDF"
+        />
       </div>
 
       {/* File list with actions */}

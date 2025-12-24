@@ -1,9 +1,16 @@
 import { FeatureItem } from "@/components/common/FeatureCard";
 import FeatureGrid from "@/components/common/FeatureGrid";
 import { RouterPath } from "@/models/router";
-import { FileImage, FileText, Gamepad2, MapPin } from "lucide-react";
+import { FileImage, FileText, Gamepad2, Languages, MapPin } from "lucide-react";
 
 export const appFeatures: FeatureItem[] = [
+  {
+    name: "Học Tiếng Anh", // --- MỤC MỚI ---
+    url: RouterPath.ENGLISH, // Đảm bảo bạn đã thêm ENGLISH vào enum RouterPath
+    icon: <Languages />,
+    description:
+      "Truy cập website học tiếng Anh cá nhân với Flashcard, từ vựng và các công cụ rèn luyện kỹ năng ngôn ngữ.",
+  },
   {
     name: "Mini Game",
     url: RouterPath.MINI_GAME,

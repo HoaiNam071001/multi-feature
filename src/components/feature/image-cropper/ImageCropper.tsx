@@ -1,7 +1,7 @@
+import UploadZone from "@/components/common/UploadZone";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
-import { Upload } from "lucide-react";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import ReactCrop, {
   Crop,
@@ -72,12 +72,12 @@ export default function ImageCropper() {
     { label: "3:4", value: 3 / 4 },
   ];
 
-  const onSelectFile = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files.length > 0) {
+  const onSelectFile = (files: File[]) => {
+    if (files && files.length > 0) {
       setCrop(undefined); // force recalc when new image loads
       const reader = new FileReader();
       reader.addEventListener("load", () => setSrc(reader.result as string));
-      reader.readAsDataURL(e.target.files[0]);
+      reader.readAsDataURL(files[0]);
     }
   };
 
@@ -213,7 +213,7 @@ export default function ImageCropper() {
       const rightAngle = Math.abs(rotation % 180) === 90;
       ctx.drawImage(
         imgRef.current,
-        flipH ? imgRef.current.naturalWidth - sx2 - sw2 : sx2 ,
+        flipH ? imgRef.current.naturalWidth - sx2 - sw2 : sx2,
         flipV ? imgRef.current.naturalHeight - sy2 - sh2 : sy2,
         sw2,
         sh2,
@@ -295,20 +295,13 @@ export default function ImageCropper() {
   return (
     <div className="flex flex-col gap-4 p-4 mx-auto max-w-6xl">
       <div className=" gap-4">
-        <Button
-          onClick={() => fileInputRef.current?.click()}
-          variant="secondary"
-        >
-          <Upload className="w-12 h-12 text-gray-500" />
-          Choose files
-        </Button>
-        <input
-          ref={fileInputRef}
-          type="file"
+        <UploadZone
+          onFiles={onSelectFile}
           accept="image/*"
-          multiple
-          className="hidden"
-          onChange={onSelectFile}
+          title="Upload Images"
+          description="JPEG, PNG, GIF supported."
+          buttonLabel="Upload Image"
+          multiple={false}
         />
       </div>
 
