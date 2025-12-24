@@ -34,8 +34,6 @@ function centerAspectCrop(
 }
 
 export default function ImageCropper() {
-  const fileInputRef = useRef<HTMLInputElement | null>(null);
-
   const [src, setSrc] = useState<string | null>(null);
   // keep a full crop object or undefined
   const [crop, setCrop] = useState<Crop | undefined>({
