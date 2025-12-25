@@ -2,7 +2,6 @@ import { FeatureItem } from "@/components/common/FeatureCard";
 import FeatureGrid from "@/components/common/FeatureGrid";
 import { RouterPath } from "@/models/router";
 import {
-  Brain,
   Crown,
   Hash,
   Puzzle,
@@ -17,13 +16,13 @@ export const items: FeatureItem[] = [
     description:
       "Trò chơi điền số logic 9x9 giúp rèn luyện tư duy và kiên nhẫn",
   },
-  {
-    name: "Memory Match",
-    url: `${RouterPath.MINI_GAME}/memory-match`,
-    icon: <Brain className="w-6 h-6" />,
-    description:
-      "Trò chơi lật thẻ tìm cặp giống nhau, cải thiện trí nhớ ngắn hạn",
-  },
+  // {
+  //   name: "Memory Match",
+  //   url: `${RouterPath.MINI_GAME}/memory-match`,
+  //   icon: <Brain className="w-6 h-6" />,
+  //   description:
+  //     "Trò chơi lật thẻ tìm cặp giống nhau, cải thiện trí nhớ ngắn hạn",
+  // },
   {
     name: "2048",
     url: `${RouterPath.MINI_GAME}/game2048`,

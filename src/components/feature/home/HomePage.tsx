@@ -1,7 +1,7 @@
 import { FeatureItem } from "@/components/common/FeatureCard";
 import FeatureGrid from "@/components/common/FeatureGrid";
 import { RouterPath } from "@/models/router";
-import { FileImage, FileText, Gamepad2, Languages, MapPin } from "lucide-react";
+import { FileImage, FileText, Languages, MapPin } from "lucide-react";
 
 export const appFeatures: FeatureItem[] = [
   {
@@ -11,13 +11,13 @@ export const appFeatures: FeatureItem[] = [
     description:
       "Truy cập website học tiếng Anh cá nhân với Flashcard, từ vựng và các công cụ rèn luyện kỹ năng ngôn ngữ.",
   },
-  {
-    name: "Mini Game",
-    url: RouterPath.MINI_GAME,
-    icon: <Gamepad2 />,
-    description:
-      "Bộ sưu tập các trò chơi trí tuệ thú vị giúp rèn luyện tư duy và giải trí",
-  },
+  // {
+  //   name: "Mini Game",
+  //   url: RouterPath.MINI_GAME,
+  //   icon: <Gamepad2 />,
+  //   description:
+  //     "Bộ sưu tập các trò chơi trí tuệ thú vị giúp rèn luyện tư duy và giải trí",
+  // },
   {
     name: "Tra Cứu Tỉnh Thành",
     url: RouterPath.PROVINCE_LOOKUP,
