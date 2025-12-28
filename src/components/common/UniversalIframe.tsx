@@ -16,39 +16,30 @@ const UniversalIframe: React.FC<UniversalIframeProps> = ({
 }) => {
   const [isFullView, setIsFullView] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
-  
+
   // Vị trí mặc định: Góc dưới phải
   const [position, setPosition] = useState({ x: 0, y: 0 });
   const [isDragging, setIsDragging] = useState(false);
-  const [hasMoved, setHasMoved] = useState(false); // Để kiểm tra xem người dùng có thực sự kéo không
+  const [hasMoved, setHasMoved] = useState(false);
 
   const dragRef = useRef<{ startX: number; startY: number; initX: number; initY: number } | null>(null);
-  const containerRef = useRef<HTMLDivElement>(null);
+  // Không cần containerRef nữa vì dùng Overlay
+  // const containerRef = useRef<HTMLDivElement>(null);
 
-  // Khởi tạo vị trí ban đầu (chạy 1 lần sau khi mount để lấy window size)
+  // Khởi tạo vị trí ban đầu
   useEffect(() => {
-    setPosition({ x: 80, y: 80 });
+    if (typeof window !== "undefined") {
+        setPosition({ x: window.innerWidth - 100, y: window.innerHeight - 150 });
+    }
   }, []);
 
-  // Xử lý Click Outside để đóng menu
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
-        setMenuOpen(false);
-      }
-    };
-
-    if (menuOpen) {
-      document.addEventListener("mousedown", handleClickOutside);
-    }
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, [menuOpen]);
+  /* ĐÃ XÓA: useEffect handleClickOutside cũ.
+     Lý do: Không bắt được sự kiện click khi chuột nằm trong vùng iframe.
+  */
 
   // Xử lý Logic Dragging
   const handleMouseDown = (e: React.MouseEvent) => {
-    e.preventDefault(); // Ngăn chặn bôi đen text
+    e.preventDefault();
     setIsDragging(true);
     setHasMoved(false);
     dragRef.current = {
@@ -66,12 +57,10 @@ const UniversalIframe: React.FC<UniversalIframeProps> = ({
       const deltaX = e.clientX - dragRef.current.startX;
       const deltaY = e.clientY - dragRef.current.startY;
 
-      // Nếu di chuyển quá 5px thì mới tính là đang drag (tránh nhầm lẫn với click run tay)
       if (Math.abs(deltaX) > 5 || Math.abs(deltaY) > 5) {
         setHasMoved(true);
       }
 
-      // Giới hạn kéo thả trong màn hình (trừ đi kích thước nút ~60px)
       const newX = Math.min(Math.max(0, dragRef.current.initX + deltaX), window.innerWidth - 60);
       const newY = Math.min(Math.max(0, dragRef.current.initY + deltaY), window.innerHeight - 60);
 
@@ -95,7 +84,6 @@ const UniversalIframe: React.FC<UniversalIframeProps> = ({
   }, [isDragging]);
 
   const handleButtonClick = () => {
-    // Nếu không phải là hành động kéo thả thì mới toggle menu
     if (!hasMoved) {
       setMenuOpen((prev) => !prev);
     }
@@ -111,17 +99,15 @@ const UniversalIframe: React.FC<UniversalIframeProps> = ({
     setMenuOpen(false);
   };
 
-  // Tính toán vị trí hiển thị menu (Smart Positioning)
-  // Chia màn hình làm 4 phần, nút đang ở phần nào thì menu mở về phía ngược lại
   const isRightSide = typeof window !== 'undefined' ? position.x > window.innerWidth / 2 : true;
   const isBottomSide = typeof window !== 'undefined' ? position.y > window.innerHeight / 2 : true;
 
   const menuPositionClass = `
-    absolute 
-    ${isBottomSide ? "bottom-full mb-3" : "top-full mt-3"} 
+    absolute
+    ${isBottomSide ? "bottom-full mb-3" : "top-full mt-3"}
     ${isRightSide ? "right-0" : "left-0"}
   `;
-  
+
   const menuOriginClass = `
     origin-${isBottomSide ? "bottom" : "top"}-${isRightSide ? "right" : "left"}
   `;
@@ -132,8 +118,23 @@ const UniversalIframe: React.FC<UniversalIframeProps> = ({
         isFullView ? "fixed inset-0 z-[50] w-screen h-screen" : `relative ${className}`
       }`}
     >
-      {/* Lớp overlay trong suốt khi drag để tránh iframe nuốt sự kiện chuột */}
+      {/* Overlay 1: Khi đang Drag
+         Để tránh iframe nuốt sự kiện chuột lúc kéo
+      */}
       {isDragging && <div className="absolute inset-0 z-[60] cursor-move" />}
+
+      {/* Overlay 2 (MỚI): Khi Menu đang mở (Click Outside handler)
+         - fixed inset-0: Phủ toàn màn hình
+         - z-[9998]: Cao hơn mọi thứ, nhưng thấp hơn Controller (z-[9999])
+         - bg-transparent: Trong suốt người dùng không thấy
+         - onClick: Đóng menu
+      */}
+      {menuOpen && (
+        <div
+            className="fixed inset-0 z-[9998] bg-transparent"
+            onClick={() => setMenuOpen(false)}
+        />
+      )}
 
       <iframe
         src={src}
@@ -145,22 +146,24 @@ const UniversalIframe: React.FC<UniversalIframeProps> = ({
 
       {/* Controller Container */}
       <div
-        ref={containerRef}
-        className="fixed z-[9999]"
-        style={{ 
-          left: position.x, 
+        // ref={containerRef} // Không cần ref này nữa
+        className="fixed z-[9999]" // Z-index cao nhất, cao hơn Overlay 2
+        style={{
+          left: position.x,
           top: position.y,
-          touchAction: 'none' // Ngăn scroll trên mobile khi drag nút
+          touchAction: 'none'
         }}
       >
         {/* Menu Options */}
         {menuOpen && (
-          <div 
+          <div
             className={`
               w-48 bg-white rounded-xl shadow-2xl border border-gray-100 p-1.5 flex flex-col gap-1
               ${menuPositionClass}
               animate-in fade-in zoom-in-95 duration-200 ${menuOriginClass}
             `}
+            // Ngăn sự kiện click trong menu lan ra overlay (dù controller z-index cao hơn nhưng cẩn thận vẫn tốt)
+            onClick={(e) => e.stopPropagation()}
           >
             <button
               onClick={toggleFullView}
@@ -193,7 +196,6 @@ const UniversalIframe: React.FC<UniversalIframeProps> = ({
           {menuOpen ? (
             <X size={24} />
           ) : (
-            // Icon Settings với hiệu ứng hover xoay nhẹ
             <Settings size={24} className="transition-transform duration-500 group-hover:rotate-180" />
           )}
         </button>
