@@ -7,7 +7,7 @@ import React from "react";
 const EnglishPage: React.FC = () => {
   return (
     <UniversalIframe
-      src="https://english-app-gray-one.vercel.app/"
+      src="https://niz-vocabulary.vercel.app/"
       title="Học Tiếng Anh"
     />
   );
